@@ -97,4 +97,3 @@ for id in range(0,len(df['iddate'])):
         last_letter=df['iddate'][id][-1]
         word=word[:-1]
         df['iddate'][id]=word+'0'+last_letter
-print(df)
