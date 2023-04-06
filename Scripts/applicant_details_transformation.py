@@ -77,27 +77,10 @@ df.loc[ df['month to use'] == 'DEC', 'month to use'] = '12'
 df.loc[ df['month to use'] == 'DECEMBER', 'month to use'] = '12'
 # format is YYYYMMDD
 df['iddate']= df['year']+df['month to use']+df['invited_date']
-
-
-#fix format
+#handle nulls
+df['iddate'] = df['iddate'].fillna('19700101')
 df['iddate'] = df['iddate'].astype(str)
 df['iddate']=df['iddate'].str.replace(".0", "")
-
-#format 1 to 01 etc.
-for id in range(0,len(df['iddate'])):
-    if len(df['iddate'][id]) ==7:
-        word=df['iddate'][id]
-        last_letter=df['iddate'][id][-1]
-        word=word[:-1]
-        df['iddate'][id]=word+'0'+last_letter
-
-#handle nulls
-for date in range(0, len(df['iddate'])):
-    if pd.isnull(df.loc[date, 'iddate']):
-        predate= date-1
-        df['iddate'][date]=df['iddate'][predate]
-        df['iddate'][date] =df['iddate'][date][:-2]
-        df['iddate'][date] = df['iddate'][date]+"00"
 #clean name for id
 df['nameuse']=df['name'].str.replace(" ", "")
 df['nameuse']=df['nameuse'].str.replace('[ '+string.punctuation+']','',regex=True)
@@ -105,8 +88,12 @@ df['nameuse']=df['nameuse'].str.lower()
 #create unique id
 df['uniqueid']=df['nameuse']+df['iddate']
 #drop intermediate columns
+
 df=df.drop(['month','year','month to use','nameuse'],axis=1)
-
-
-with open('applicants_clean.csv','w') as file:
-    df.to_csv(file)
+problems = 0
+for id in range(0,len(df['iddate'])):
+    if len(df['iddate'][id]) ==7:
+        word=df['iddate'][id]
+        last_letter=df['iddate'][id][-1]
+        word=word[:-1]
+        df['iddate'][id]=word+'0'+last_letter
