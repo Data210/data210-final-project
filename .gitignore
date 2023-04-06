@@ -5,3 +5,4 @@ final-project-env
 .gitignore
 .python-version
 __pycache__
+.env
