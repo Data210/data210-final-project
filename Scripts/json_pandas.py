@@ -43,3 +43,12 @@ df = pd.concat(json_df, ignore_index=True)
 
 print(df.head())
 #print(df.columns)
+
+# use explode function to split the list column into multiple rows
+df_strengths = df[['id', 'strengths']].explode('strengths')
+print(df_strengths.head())
+
+# use explode function to split the list column into multiple rows
+df_weaknesses = df[['id', 'weaknesses']].explode('weaknesses')
+print(df_weaknesses.head(15))
+
