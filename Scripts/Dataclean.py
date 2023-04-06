@@ -77,6 +77,8 @@ df.loc[ df['month to use'] == 'DECEMBER', 'month to use'] = '12'
 df['iddate']= df['year']+df['month to use']+df['invited_date']
 #handle nulls
 df['iddate'] = df['iddate'].fillna('19700101')
+df['iddate'] = df['iddate'].astype(str)
+df['iddate']=df['iddate'].str.replace(".0", "")
 #clean name for id
 df['nameuse']=df['name'].str.replace(" ", "")
 df['nameuse']=df['nameuse'].str.replace("-", "")
@@ -86,3 +88,4 @@ df['nameuse']=df['nameuse'].str.lower()
 df['uniqueid']=df['nameuse']+df['iddate']
 #drop intermediate columns
 df=df.drop(['year','month to use','nameuse'],axis=1)
+print(df)
