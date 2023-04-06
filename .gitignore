@@ -1,1 +1,6 @@
 env
+venv
+final-project-env
+.idea
+.gitignore
+.python-version
