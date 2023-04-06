@@ -4,7 +4,7 @@ Documentation on /Scripts, and what everything in there is for:
 
 s3.py : Complies commonly used functions to be callable in other scripts.
 
-Dataclean.py : Creates dataframe from all applicant csv, cleans data and creates unique ID. (todo: Check ID matches between Dataclean.py and sparta_day_transformation.py)
+applicant_details_transformation.py : Creates dataframe from all applicant csv, cleans data and creates unique ID. (todo: Check ID matches between Dataclean.py and sparta_day_transformation.py)
 
 academy_cleaned.ipynb : Creates dataframe from all academy csv, cleans data. (Note:will be changed to .py in future)
 
