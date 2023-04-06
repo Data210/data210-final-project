@@ -81,6 +81,14 @@ df['iddate']= df['year']+df['month to use']+df['invited_date']
 df['iddate'] = df['iddate'].fillna('19700101')
 df['iddate'] = df['iddate'].astype(str)
 df['iddate']=df['iddate'].str.replace(".0", "")
+
+#format 1 to 01 etc.
+for id in range(0,len(df['iddate'])):
+    if len(df['iddate'][id]) ==7:
+        word=df['iddate'][id]
+        last_letter=df['iddate'][id][-1]
+        word=word[:-1]
+        df['iddate'][id]=word+'0'+last_letter
 #clean name for id
 df['nameuse']=df['name'].str.replace(" ", "")
 df['nameuse']=df['nameuse'].str.replace('[ '+string.punctuation+']','',regex=True)
@@ -88,14 +96,8 @@ df['nameuse']=df['nameuse'].str.lower()
 #create unique id
 df['uniqueid']=df['nameuse']+df['iddate']
 #drop intermediate columns
-
 df=df.drop(['month','year','month to use','nameuse'],axis=1)
-problems = 0
-for id in range(0,len(df['iddate'])):
-    if len(df['iddate'][id]) ==7:
-        word=df['iddate'][id]
-        last_letter=df['iddate'][id][-1]
-        word=word[:-1]
-        df['iddate'][id]=word+'0'+last_letter
+
+
 with open('applicants_clean.csv','w') as file:
     df.to_csv(file)
