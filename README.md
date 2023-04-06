@@ -13,3 +13,9 @@ json_pandas.py : Converts data provided by client in JSON format to a pandas dat
 sparta_day_transformation.py: Defines a function to parse text files provided by client, reads text files and writes them to a pandas dataframe, cleans the data and creates a unqiue ID. 
 
 create_database.py : Creates initial database and tables using SQLAlchemy.
+
+academy_behaviours.py : Creates behaviours dataframe from academy data.
+
+self_tech_scores.py: Obtains the tech scores from JSON files as a csv.
+
+talent_sparta_results.py: Outputs key interview metrics as a csv.
