@@ -62,6 +62,7 @@ df[cols_to_convert] = df[cols_to_convert].astype(str).apply(lambda x: x.str.spli
 Academy = df[['name', 'trainer', 'course_name', 'date']]
 print(Academy)
 
+
 #we want to separate weeks and traits
 # Define columns to keep fixed
 
@@ -69,6 +70,7 @@ fixed_cols = ['name', 'trainer', 'course_name', 'date']
 
 # Define columns to unpivot
 unpivot_cols = [col for col in df.columns if col.startswith(('analytic_', 'independent_', 'determined_', 'professional_', 'studious_', 'imaginative_'))]
+df[unpivot_cols] = df[unpivot_cols].astype(str)
 
 # Unpivot columns
 df_unpivoted = df.melt(id_vars=fixed_cols, value_vars=unpivot_cols, var_name='trait_week')
@@ -82,5 +84,9 @@ df_unpivoted.drop('trait_week', axis=1, inplace=True)
 # Pivot the dataframe to reshape it
 df_reshaped = df_unpivoted.pivot_table(index=fixed_cols + ['week'], columns='index', values='value').reset_index()
 
-# !!! Creating Behaviour table
+#!!! Creating Behaviour table
 Behaviour = df_reshaped.drop(columns=['trainer', 'course_name', 'date'])
+
+#reshaping made our values as float again, we convert it to int. 
+Behaviour[['analytic', 'determined', 'imaginative', 'independent', 'professional', 'studious']] = Behaviour[['analytic', 'determined', 'imaginative', 'independent', 'professional', 'studious']].applymap(lambda x: int(str(x).replace('.0', '')) if isinstance(x, float) else x)
+Behaviour.dtypes
