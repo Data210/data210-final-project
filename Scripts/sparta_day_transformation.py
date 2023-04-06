@@ -8,14 +8,13 @@ from datetime import datetime, timezone
 bucket_name = "data-eng-210-final-project"
 client = S3Client()
 
-# Find all files with .txt extension in bucket
-
 
 def getAllData() -> pd.DataFrame:
     """
     Returns a DataFrame with ALL the Sparta Day records in the bucket
     """
     sparta_day_file_keys = []
+    # Find all files with .txt extension in bucket
     for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
         if item.key.endswith('.txt'):
             sparta_day_file_keys.append(item.key)
@@ -23,19 +22,21 @@ def getAllData() -> pd.DataFrame:
 
 
 def getDataSince(dt: datetime):
+    """
+    Returns a DataFrame with the Sparta Day records modified at or after the provided datetime
+    """
     dt = dt.replace(tzinfo=timezone.utc)
     sparta_day_file_keys = []
     for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
         if item.key.endswith('.txt') and item.last_modified > dt:
             sparta_day_file_keys.append(item.key)
-    """
-    Returns a DataFrame with the Sparta Day records modified at or after the provided datetime
-    """
     return getData(sparta_day_file_keys)
 
 
 def getData(keys: list) -> pd.DataFrame:
-
+    """
+    Returns a DataFrame with all the records in files from the list of keys provided
+    """
     # Create empty df and loop through all files, parsing and concatenating to main df
     # Set column names
     sparta_day_df = pd.DataFrame()
@@ -58,16 +59,15 @@ def getData(keys: list) -> pd.DataFrame:
 
     return sparta_day_df
 
-# Save results to a file for now
-
-
+# Save results to a file
 def getAllDataAsCSV():
+    """
+    Writes ALL the records in the bucket to a .csv
+    """
     with open('sparta_day_clean.csv', 'w') as file:
         getAllData().to_csv(file)
 
 # Utility function for parsing the sparta day .txt format
-
-
 def parseTextFile(text: str) -> list:
     """
     Takes in a string from the Sparta Day .txt files' body and returns a list of rows, each row is a list split by column
