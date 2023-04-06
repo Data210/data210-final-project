@@ -75,6 +75,8 @@ df.loc[ df['month to use'] == 'DEC', 'month to use'] = '12'
 df.loc[ df['month to use'] == 'DECEMBER', 'month to use'] = '12'
 # format is YYYYMMDD -CHECK FOR YYYYMMD potential issue i.e 1 instead of 01
 df['iddate']= df['year']+df['month to use']+df['invited_date']
+#handle nulls
+df['iddate'] = df['iddate'].fillna('19700101')
 #clean name for id
 df['nameuse']=df['name'].str.replace(" ", "")
 df['nameuse']=df['nameuse'].str.replace("-", "")
