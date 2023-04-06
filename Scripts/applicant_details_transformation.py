@@ -77,8 +77,9 @@ df.loc[ df['month to use'] == 'DEC', 'month to use'] = '12'
 df.loc[ df['month to use'] == 'DECEMBER', 'month to use'] = '12'
 # format is YYYYMMDD
 df['iddate']= df['year']+df['month to use']+df['invited_date']
-#handle nulls
-df['iddate'] = df['iddate'].fillna('19700101')
+
+
+#fix format
 df['iddate'] = df['iddate'].astype(str)
 df['iddate']=df['iddate'].str.replace(".0", "")
 
@@ -89,6 +90,14 @@ for id in range(0,len(df['iddate'])):
         last_letter=df['iddate'][id][-1]
         word=word[:-1]
         df['iddate'][id]=word+'0'+last_letter
+
+#handle nulls
+for date in range(0, len(df['iddate'])):
+    if pd.isnull(df.loc[date, 'iddate']):
+        predate= date-1
+        df['iddate'][date]=df['iddate'][predate]
+        df['iddate'][date] =df['iddate'][date][:-2]
+        df['iddate'][date] = df['iddate'][date]+"00"
 #clean name for id
 df['nameuse']=df['name'].str.replace(" ", "")
 df['nameuse']=df['nameuse'].str.replace('[ '+string.punctuation+']','',regex=True)
