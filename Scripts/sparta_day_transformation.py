@@ -1,7 +1,7 @@
 from s3 import S3Client
 import pandas as pd
-import io
 import re
+import string
 
 #Config
 bucket_name = "data-eng-210-final-project"
@@ -47,7 +47,11 @@ sparta_day_df.FirstName = sparta_day_df.FirstName.str.strip(" ")
 sparta_day_df.LastName = sparta_day_df.LastName.str.strip(" ")
 sparta_day_df.Psychometrics = sparta_day_df.Psychometrics.astype(int)
 sparta_day_df.Presentation = sparta_day_df.Presentation.astype(int)
-sparta_day_df[sparta_day_df.LastName.str.contains(" ")]
+sparta_day_df.Date = sparta_day_df.Date = pd.to_datetime(sparta_day_df.Date)
+
+#Add ID
+sparta_day_df["SpartaDayTalentID"] = sparta_day_df.FirstName.str.lower() + sparta_day_df.LastName.str.lower() + sparta_day_df.Date.dt.strftime('%Y%m%d')
+sparta_day_df["SpartaDayTalentID"] = sparta_day_df["SpartaDayTalentID"].str.replace('[ '+string.punctuation+']','',regex=True)
 
 #Save results to a file for now
 with open('sparta_day_clean.csv','w') as file:

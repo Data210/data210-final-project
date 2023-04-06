@@ -2,6 +2,8 @@
 import boto3
 import pandas as pd
 import numpy as np
+import string
+pd.options.mode.chained_assignment = None  # default='warn'
 #set up s3
 s3_client = boto3.client('s3')
 s3_resource = boto3.resource('s3')
@@ -55,7 +57,7 @@ df['month to use']=df['month']
 df['month to use']=df['month to use'].str[:-5]
 #this is a pain but necessary
 df.loc[ df['month to use'] == 'JAN', 'month to use'] = '01'
-df.loc[ df['month to use'] == 'JANRUARY', 'month to use'] = '01'
+df.loc[ df['month to use'] == 'JANUARY', 'month to use'] = '01'
 df.loc[ df['month to use'] == 'FEB', 'month to use'] = '02'
 df.loc[ df['month to use'] == 'FEBRUARY', 'month to use'] = '02'
 df.loc[ df['month to use'] == 'MARCH', 'month to use'] = '03'
@@ -73,16 +75,26 @@ df.loc[ df['month to use'] == 'NOV', 'month to use'] = '11'
 df.loc[ df['month to use'] == 'NOVEMBER', 'month to use'] = '11'
 df.loc[ df['month to use'] == 'DEC', 'month to use'] = '12'
 df.loc[ df['month to use'] == 'DECEMBER', 'month to use'] = '12'
-# format is YYYYMMDD -CHECK FOR YYYYMMD potential issue i.e 1 instead of 01
+# format is YYYYMMDD
 df['iddate']= df['year']+df['month to use']+df['invited_date']
 #handle nulls
 df['iddate'] = df['iddate'].fillna('19700101')
+df['iddate'] = df['iddate'].astype(str)
+df['iddate']=df['iddate'].str.replace(".0", "")
 #clean name for id
 df['nameuse']=df['name'].str.replace(" ", "")
-df['nameuse']=df['nameuse'].str.replace("-", "")
-df['nameuse']=df['nameuse'].str.replace(",", "")
+df['nameuse']=df['nameuse'].str.replace('[ '+string.punctuation+']','',regex=True)
 df['nameuse']=df['nameuse'].str.lower()
 #create unique id
 df['uniqueid']=df['nameuse']+df['iddate']
 #drop intermediate columns
-df=df.drop(['year','month to use','nameuse'],axis=1)
+
+df=df.drop(['month','year','month to use','nameuse'],axis=1)
+problems = 0
+for id in range(0,len(df['iddate'])):
+    if len(df['iddate'][id]) ==7:
+        word=df['iddate'][id]
+        last_letter=df['iddate'][id][-1]
+        word=word[:-1]
+        df['iddate'][id]=word+'0'+last_letter
+print(df)
