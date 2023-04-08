@@ -1,6 +1,7 @@
 import pandas as pd
 import boto3
 import json
+import string
 from io import StringIO
 
 # Set up S3 client
@@ -39,21 +40,31 @@ for obj in response['Contents']:
 
 # Concatenate all DataFrames into a single DataFrame
 df = pd.concat(json_df, ignore_index=True)
-# reset the index to create a new ID column
-df = df.reset_index()
 
-# rename the new ID column to 'id'
-df = df.rename(columns={'index': 'id'})
+# Replace double slashes with single slashes in the 'date' column
+df['date'] = df['date'].str.replace('//', '/')
+
+# Add sparta_day_person_id
+df["sparta_day_person_id"] = df["name"].str.lower() + pd.to_datetime(df['date'], dayfirst=True).dt.strftime('%Y%m%d')
+df["sparta_day_person_id"] = df["sparta_day_person_id"].str.replace('[ '+string.punctuation+']', '', regex=True)
+
+df = df.set_index('sparta_day_person_id')
+df = df.reset_index()
 
 print(df.head())
 
-#print(df.columns)
-
 # use explode function to split the list column into multiple rows
-df_strengths = df[['id', 'strengths']].explode('strengths')
+df_strengths = df[['sparta_day_person_id', 'strengths']].explode('strengths')
+df_strengths = df_strengths.set_index('sparta_day_person_id')
+df_strengths = df_strengths.reset_index()
 print(df_strengths.head())
+with open('strengths_json.csv','w') as file:
+    df_strengths.to_csv(file)
 
 # use explode function to split the list column into multiple rows
-df_weaknesses = df[['id', 'weaknesses']].explode('weaknesses')
+df_weaknesses = df[['sparta_day_person_id', 'weaknesses']].explode('weaknesses')
+df_weaknesses = df_weaknesses.set_index('sparta_day_person_id')
+df_weaknesses = df_weaknesses.reset_index()
 print(df_weaknesses.head())
-
+with open('weaknesses_json.csv','w') as file:
+    df_weaknesses.to_csv(file)
