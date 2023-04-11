@@ -4,7 +4,7 @@ import re
 import string
 import io
 from datetime import datetime, timezone
-
+pd.options.mode.chained_assignment = None
 # Config
 bucket_name = "data-eng-210-final-project"
 client = S3Client()
@@ -71,11 +71,23 @@ def parseFile(text: str) -> pd.DataFrame:
     df['invited_date'] = df['invited_date'].astype(
         'Int64', errors='raise').apply(str) + ' ' + df['month']
     # Convert the mixed date formats to datetime
-    df['invited_date'] = pd.to_datetime(
-        df['invited_date'], errors='raise', dayfirst=True, format='mixed')
+    df['invited_date'] = pd.to_datetime(df['invited_date'], errors='raise', dayfirst=True, format='mixed')
     # Create unique ID from lowercase name joined without spaces and invited_date in %Y%m%d format
+    df['iddate']=df['invited_date'].dt.strftime('%Y%m%d')
+    df['iddate'] = df['iddate'].astype(str)
+    df['iddate'] = df['iddate'].str.replace(".0", "")
+    for date in range(1, len(df['iddate'])):
+        if df.loc[date, 'iddate'] == "nan":
+            predate= date -1
+            df['iddate'][date]=df['iddate'][predate]
+            df['iddate'][date] =df['iddate'][date][:-2]
+            df['iddate'][date] = df['iddate'][date]+"00"
     df['uniqueid'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
-                                                        '', regex=True) + df['invited_date'].dt.strftime('%Y%m%d')
+                                                        '', regex=True) + df['iddate']
     # Drop month column as found in invited_date column
     df = df.drop(columns=['month'])
     return df
+
+df=getAllData()
+print(df.head())
+
