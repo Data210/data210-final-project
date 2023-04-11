@@ -5,55 +5,10 @@ import string
 import io
 from datetime import datetime, timezone
 pd.options.mode.chained_assignment = None
+pd.set_option('display.max_columns', None)
 # Config
 bucket_name = "data-eng-210-final-project"
 client = S3Client()
-
-
-def getAllData() -> pd.DataFrame:
-    """
-    Returns a DataFrame with ALL the Sparta Day records in the bucket
-    """
-    applicants_file_keys = []
-    # Find all files with .txt extension in bucket
-    for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
-        if item.key.endswith('.csv'):
-            applicants_file_keys.append(item.key)
-    return getData(applicants_file_keys)
-
-
-def getDataSince(dt: datetime):
-    """
-    Returns a DataFrame with the Applicants records modified at or after the provided datetime
-    """
-    dt = dt.replace(tzinfo=timezone.utc)
-    applicants_file_keys = []
-    for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
-        if item.key.endswith('.csv') and item.last_modified > dt:
-            applicants_file_keys.append(item.key)
-    return getData(applicants_file_keys)
-
-
-def getData(keys: list) -> pd.DataFrame:
-    """
-    Returns a DataFrame with all the records in files from the list of keys provided
-    """
-    # Create empty df and loop through all files, parsing and concatenating to main df
-    # Set column names
-    df = pd.DataFrame()
-    for key in keys:
-        text = client.getCSV(bucket_name, key)
-        df = pd.concat(
-            [df, pd.DataFrame(parseFile(text))])
-
-    return df
-
-def getAllDataAsCSV(filename = 'applicants_clean.csv'):
-    """
-    Writes ALL the related records in the bucket to a .csv
-    """
-    with open(filename, 'w') as file:
-        getAllData().to_csv(file)
 
 def parseFile(text: str) -> pd.DataFrame:
     """
@@ -82,12 +37,80 @@ def parseFile(text: str) -> pd.DataFrame:
             df['iddate'][date]=df['iddate'][predate]
             df['iddate'][date] =df['iddate'][date][:-2]
             df['iddate'][date] = df['iddate'][date]+"00"
-    df['uniqueid'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
+    df['applicant_id'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
                                                         '', regex=True) + df['iddate']
     # Drop month column as found in invited_date column
     df = df.drop(columns=['month'])
     return df
 
-df=getAllData()
-print(df.head())
+def getData(keys: list) -> pd.DataFrame:
+    """
+    Returns a DataFrame with all the records in files from the list of keys provided
+    """
+    # Create empty df and loop through all files, parsing and concatenating to main df
+    # Set column names
+    df = pd.DataFrame()
+    for key in keys:
+        text = client.getCSV(bucket_name, key)
+        df = pd.concat(
+            [df, pd.DataFrame(parseFile(text))])
+
+    return df
+
+
+def getDataSince(dt: datetime):
+    """
+    Returns a DataFrame with the Applicants records modified at or after the provided datetime
+    """
+    dt = dt.replace(tzinfo=timezone.utc)
+    applicants_file_keys = []
+    for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
+        if item.key.endswith('.csv') and item.last_modified > dt:
+            applicants_file_keys.append(item.key)
+    return getData(applicants_file_keys)
+
+
+def getAllData() -> pd.DataFrame:
+    """
+    Returns a DataFrame with ALL the Sparta Day records in the bucket
+    """
+    applicants_file_keys = []
+    # Find all files with .txt extension in bucket
+    for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
+        if item.key.endswith('.csv'):
+            applicants_file_keys.append(item.key)
+    return getData(applicants_file_keys)
+
+
+def getAllDataAsCSV(filename = 'applicants_clean.csv'):
+    """
+    Writes ALL the related records in the bucket to a .csv
+    """
+    with open(filename, 'w') as file:
+        getAllData().to_csv(file)
+
+def recruit() -> pd.DataFrame:
+    main_df = getAllData()
+
+    unique_recruiters = main_df['invited_by'].unique()
+    recruiter_ids = {name: i + 1 for i, name in enumerate(unique_recruiters)}
+
+    # Replace the 'invited_by' column with 'recruiter_id'
+    main_df['recruiter_id'] = main_df['invited_by'].map(recruiter_ids)
+
+    # Create a dataframe of unique recruiters and their IDs
+    recruiters_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
+
+    return main_df, recruiters_df
+
+def process_locations() -> pd.DataFrame:
+    main_df, recruiter_df = recruit()
+    # Create a new dataframe 'location_df' with unique values of 'address', 'postcode', 'city', and 'applicant_id'
+    location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
+    location_df['location_id'] = range(len(location_df))
+    main_df.drop(['address', 'postcode', 'city'], axis=1, inplace=True)
+    # Return all dataframes
+    return main_df, location_df, recruiter_df
+
+#this is final method needed for sql, unless we need to write csv
 
