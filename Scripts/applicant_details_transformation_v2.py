@@ -73,9 +73,59 @@ def parseFile(text: str) -> pd.DataFrame:
     # Convert the mixed date formats to datetime
     df['invited_date'] = pd.to_datetime(
         df['invited_date'], errors='raise', dayfirst=True, format='mixed')
-    # Create unique ID from lowercase name joined without spaces and invited_date in %Y%m%d format
-    df['uniqueid'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
-                                                        '', regex=True) + df['invited_date'].dt.strftime('%Y%m%d')
-    # Drop month column as found in invited_date column
-    df = df.drop(columns=['month'])
+    
+    
+    df['year']=df['month'].str[-4:]
+    df['month to use']=df['month']
+    df['month to use']=df['month to use'].str[:-5]
+    #this is a pain but necessary
+    df.loc[ df['month to use'] == 'JAN', 'month to use'] = '01'
+    df.loc[ df['month to use'] == 'JANUARY', 'month to use'] = '01'
+    df.loc[ df['month to use'] == 'FEB', 'month to use'] = '02'
+    df.loc[ df['month to use'] == 'FEBRUARY', 'month to use'] = '02'
+    df.loc[ df['month to use'] == 'MARCH', 'month to use'] = '03'
+    df.loc[ df['month to use'] == 'APRIL', 'month to use'] = '04'
+    df.loc[ df['month to use'] == 'MAY', 'month to use'] = '05'
+    df.loc[ df['month to use'] == 'JUNE', 'month to use'] = '06'
+    df.loc[ df['month to use'] == 'JULY', 'month to use'] = '07'
+    df.loc[ df['month to use'] == 'AUGUST', 'month to use'] = '08'
+    df.loc[ df['month to use'] == 'AUG', 'month to use'] = '08'
+    df.loc[ df['month to use'] == 'SEPT', 'month to use'] = '09'
+    df.loc[ df['month to use'] == 'SEPTEMBER', 'month to use'] = '09'
+    df.loc[ df['month to use'] == 'OCT', 'month to use'] = '10'
+    df.loc[ df['month to use'] == 'OCTOBER', 'month to use'] = '10'
+    df.loc[ df['month to use'] == 'NOV', 'month to use'] = '11'
+    df.loc[ df['month to use'] == 'NOVEMBER', 'month to use'] = '11'
+    df.loc[ df['month to use'] == 'DEC', 'month to use'] = '12'
+    df.loc[ df['month to use'] == 'DECEMBER', 'month to use'] = '12'
+    # format is YYYYMMDD
+    df['iddate']= df['year']+df['month to use']+df['invited_date']
+    
+    
+    #fix format
+    df['iddate'] = df['iddate'].astype(str)
+    df['iddate']=df['iddate'].str.replace(".0", "")
+    
+    #format 1 to 01 etc.
+    for id in range(0,len(df['iddate'])):
+        if len(df['iddate'][id]) ==7:
+           word=df['iddate'][id]
+           last_letter=df['iddate'][id][-1]
+           word=word[:-1]
+            df['iddate'][id]=word+'0'+last_letter
+
+    #handle nulls
+    for date in range(0, len(df['iddate'])):
+     if pd.isnull(df.loc[date, 'iddate']):
+           predate= date-1
+           df['iddate'][date]=df['iddate'][predate]
+            df['iddate'][date] =df['iddate'][date][:-2]
+            df['iddate'][date] = df['iddate'][date]+"00"
+    
+    #drop intermediate columns
+    df=df.drop(['month','year','month to use'],axis=1)
+      # Create unique ID from lowercase name joined without spaces and invited_date in %Y%m%d format
+       df['uniqueid'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
+                                                            '', regex=True) + df['iddate]
+       
     return df
