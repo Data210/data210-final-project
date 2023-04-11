@@ -82,8 +82,8 @@ df_weaknesses = df[['applicant_id', 'weaknesses']].explode('weaknesses')
 df_weaknesses = df_weaknesses.set_index('applicant_id')
 df_weaknesses = df_weaknesses.reset_index()
 print(df_weaknesses.head())
-with open('weaknesses_json.csv','w') as file:
-    df_weaknesses.to_csv(file)
+# with open('weaknesses_json.csv','w') as file:
+#     df_weaknesses.to_csv(file)
 
 weaknesses = df_weaknesses['weaknesses'].unique()
 # Create a new dataframe with strength_id and strength columns
