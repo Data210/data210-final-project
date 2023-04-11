@@ -29,7 +29,7 @@ def getDataSince(dt: datetime):
     dt = dt.replace(tzinfo=timezone.utc)
     applicants_file_keys = []
     for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
-        if item.key.endswith('.txt') and item.last_modified > dt:
+        if item.key.endswith('.csv') and item.last_modified > dt:
             applicants_file_keys.append(item.key)
     return getData(applicants_file_keys)
 
@@ -55,7 +55,7 @@ def getAllDataAsCSV(filename = 'applicants_clean.csv'):
     with open(filename, 'w') as file:
         getAllData().to_csv(file)
 
-def parseFile(text):
+def parseFile(text: str) -> pd.DataFrame:
     """
     Takes the Applicants .csv files' body and returns a Pandas DataFrame with the data
     """
