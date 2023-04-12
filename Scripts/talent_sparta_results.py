@@ -2,7 +2,9 @@ import boto3
 import json
 import pandas as pd
 import io
-pd.set_option('display.max_columns', None)
+
+
+
 s3 = boto3.resource('s3')
 bucket_name = 'data-eng-210-final-project'
 bucket = s3.Bucket('data-eng-210-final-project')
@@ -48,16 +50,19 @@ df_clean['academyid'] = pd.factorize(df_clean['Academy'])[0]
 academy_table = df_clean[['academyid', 'Academy']].drop_duplicates().reset_index(drop=True)
 df_clean = df_clean.drop(columns=['Academy'])
 
-df_clean.rename(columns={"SpartaDayTalentID": "application_id", "academyid": "academy_location_id", "Psychometrics": "psycometric_results", "Presentation": "presentation_results"}, inplace=True)
+df_clean.rename(columns={"SpartaDayTalentID": "applicant_id", "academyid": "academy_location_id", "Psychometrics": "psycometric_results", "Presentation": "presentation_results"}, inplace=True)
 
 academy_table.rename(columns={"academyid": "academy_location_id", "Academy": "location_name"}, inplace=True)
 
 Talent = df_clean
 Talent.reset_index(drop=True, inplace=True)
-
+Talent.set_index('applicant_id', inplace=True)
 
 Academy_Locations = academy_table
 Academy_Locations.reset_index(drop=True, inplace=True)
+Academy_Locations.set_index('academy_location_id', inplace=True)
+
+
 
 # Write to new file
 with open('Talent.csv','w') as file:
