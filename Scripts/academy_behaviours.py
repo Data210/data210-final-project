@@ -41,9 +41,9 @@ duplicate_rows = df[df['name'].duplicated()]
 duplicate_names = duplicate_rows['name'].unique()
 print("Duplicate names:", list(duplicate_names))
 # change in lower cases
-df['name'] = df['name'].str.lower()
-df['trainer'] = df['trainer'].str.lower()
-df['course_name'] = df['course_name'].str.lower()
+# df['name'] = df['name'].str.lower()
+# df['trainer'] = df['trainer'].str.lower()
+# df['course_name'] = df['course_name'].str.lower()
 #change columns to be in lower case
 df.columns = [col.lower() for col in df.columns]
 
@@ -58,30 +58,30 @@ df['str_date'] = df['date'].dt.strftime('%Y-%m-%d')
 df['behaviour_id'] = pd.concat([df['name'], df['str_date']], axis=1).apply(lambda x: ''.join(x), axis=1)
 df['behaviour_id'] = df['behaviour_id'].str.replace(' ', '_')
 #ely kely to elly kelly
-df['trainer'] = df['trainer'].replace('ely kely', 'elly kelly')
+df['trainer'] = df['trainer'].replace('Ely Kely', 'Elly Kelly')
 
 #CREATING SPARTA TABLE
 spartans = df[['behaviour_id','name', 'trainer', 'course_name']]
 trainer_dict = {
-    'gregor gomez': 1,
-    'bruce lugo': 2,
-    'neil mccarthy': 3,
-    'rachel richard': 4,
-    'hamzah melia': 5,
-    'burhan milner': 6,
-    'elly kelly': 7,
-    'trixie orange': 8,
-    'john sandbox': 9,
-    'edward reinhart': 10,
-    'lucy foster': 11,
-    'gina cartwright': 12,
-    'eshal brandt': 13,
-    'macey broughton': 14,
-    'igor coates': 15,
-    'mohammad velazquez': 16,
-    'martina meadows': 17
+    'Gregor Gomez': 1,
+    'Bruce Lugo': 2,
+    'Neil Mccarthy': 3,
+    'Rachel Richard': 4,
+    'Hamzah Melia': 5,
+    'Burhan Milner': 6,
+    'Elly Kelly': 7,
+    'Trixie Orange': 8,
+    'John Sandbox': 9,
+    'Edward Reinhart': 10,
+    'Lucy Foster': 11,
+    'Gina Cartwright': 12,
+    'Eshal Brandt': 13,
+    'Macey Broughton': 14,
+    'Igor Coates': 15,
+    'Mohammad Velazquez': 16,
+    'Martina Meadows': 17
 }
-spartans['trainer_id'] = spartans['trainer'].map(trainer_dict)
+spartans['trainer_id'] = spartans['trainer'].map(trainer_dict).astype(int)
 spartans['course_id'] = spartans['course_name'].str.slice(stop=3).str.upper()
 
 
