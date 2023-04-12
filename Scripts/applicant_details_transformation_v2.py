@@ -41,6 +41,7 @@ def parseFile(text: str) -> pd.DataFrame:
                                                         '', regex=True) + df['iddate']
     # Drop month column as found in invited_date column
     df = df.drop(columns=['month'])
+
     return df
 
 def getData(keys: list) -> pd.DataFrame:
@@ -91,6 +92,9 @@ def getAllDataAsCSV(filename = 'applicants_clean.csv'):
 
 def recruit() -> pd.DataFrame:
     main_df = getAllData()
+    #fix recruiter names, case-by-case basis unfortunately
+    main_df['invited_by']=main_df.['invited_by'].replace('Bruno Belbrook','Bruno Bellbrook')
+    main_df['invited_by'] = main_df.['invited_by'].replace('Fifi Etton', 'Fifi Eton')
 
     unique_recruiters = main_df['invited_by'].unique()
     recruiter_ids = {name: i + 1 for i, name in enumerate(unique_recruiters)}
