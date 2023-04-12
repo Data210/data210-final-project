@@ -40,17 +40,30 @@ df_sparta_day_clean['name'] = df_sparta_day_clean['FirstName'] + ' ' + df_sparta
 df_t = pd.merge(df_table, df_sparta_day_clean, on='name')
 
 # Select relevant columns
-df_clean = df_t[['json_key','name','date','self_development','financial_support_self','result','course_interest','geo_flex','Psychometrics','Presentation','Academy','SpartaDayTalentID']]
+df_clean = df_t[['SpartaDayTalentID','date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
+
+
 
 df_clean['academyid'] = pd.factorize(df_clean['Academy'])[0]
-academy_table = df_clean[['Academy', 'academyid']].drop_duplicates().reset_index(drop=True)
+academy_table = df_clean[['academyid', 'Academy']].drop_duplicates().reset_index(drop=True)
 df_clean = df_clean.drop(columns=['Academy'])
 
-# Write to new file
-with open('talent_sparta_results.csv','w') as file:
-    df_clean.to_csv(file)
+df_clean.rename(columns={"SpartaDayTalentID": "application_id", "academyid": "academy_location_id", "Psychometrics": "psycometric_results", "Presentation": "presentation_results"}, inplace=True)
+
+academy_table.rename(columns={"academyid": "academy_location_id", "Academy": "location_name"}, inplace=True)
+
+Talent = df_clean
+Talent.reset_index(drop=True, inplace=True)
+
+
+Academy_Locations = academy_table
+Academy_Locations.reset_index(drop=True, inplace=True)
 
 # Write to new file
-with open('academy_table.csv','w') as file:
-    academy_table.to_csv(file)
+with open('Talent.csv','w') as file:
+    Talent.to_csv(file)
+
+# Write to new file
+with open('Academy_Locations.csv','w') as file:
+    Academy_Locations.to_csv(file)
 

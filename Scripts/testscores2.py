@@ -44,14 +44,18 @@ df['language_id'] = pd.factorize(df['languages'])[0]
 df=df.reset_index(drop=True)
 
 # Split into language table and self score table
-language_table = df[['languages', 'language_id']].drop_duplicates().reset_index(drop=True)
-tech_self_scores = df[['SpartaDayTalentID','language_id','scores']]
-tech_self_scores.rename(columns={"SpartaDayTalentID": "applicationid", "scores": "score"})
-language_table.rename(columns={"languages": "language"})
+language_table = df[['language_id', 'languages']].drop_duplicates().reset_index(drop=True)
+tech_self_scores = df[['language_id','SpartaDayTalentID','scores']]
+tech_self_scores.rename(columns={"language_id": "tech_id", "SpartaDayTalentID": "application_id", "scores": "score"}, inplace=True)
+language_table.rename(columns={"languages": "techname", "language_id": "tech_id"}, inplace=True)
+
+technologies = language_table
+
+tech_junction = tech_self_scores
 
 # Write them into a csv
-with open('tech_self_scores.csv','w') as file:
-    tech_self_scores.to_csv(file)
+with open('tech_junction.csv','w') as file:
+    tech_junction.to_csv(file)
 
-with open('language_table.csv','w') as file:
-    language_table.to_csv(file)
+with open('technologies.csv','w') as file:
+    technologies.to_csv(file)
