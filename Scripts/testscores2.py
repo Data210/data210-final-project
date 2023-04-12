@@ -46,13 +46,17 @@ df=df.reset_index(drop=True)
 # Split into language table and self score table
 language_table = df[['language_id', 'languages']].drop_duplicates().reset_index(drop=True)
 tech_self_scores = df[['language_id','SpartaDayTalentID','scores']]
-tech_self_scores.rename(columns={"language_id": "tech_id", "SpartaDayTalentID": "application_id", "scores": "score"}, inplace=True)
+tech_self_scores.rename(columns={"language_id": "tech_id", "SpartaDayTalentID": "applicant_id", "scores": "score"}, inplace=True)
 language_table.rename(columns={"languages": "techname", "language_id": "tech_id"}, inplace=True)
 
 technologies = language_table
+technologies = technologies.reset_index(drop=True)
+technologies.set_index('tech_id', inplace=True)
+
 
 tech_junction = tech_self_scores
-
+tech_junction = tech_junction.reset_index(drop=True)
+tech_junction.set_index('applicant_id', inplace=True)
 # Write them into a csv
 with open('tech_junction.csv','w') as file:
     tech_junction.to_csv(file)
