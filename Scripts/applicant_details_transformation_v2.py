@@ -112,7 +112,7 @@ def process_locations() -> pd.DataFrame:
     # Create a new dataframe 'location_df' with unique values of 'address', 'postcode', 'city', and 'applicant_id'
     location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
     location_df['location_id'] = range(len(location_df))
-    main_df.drop(['address', 'postcode', 'city'], axis=1, inplace=True)
+    main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
     # Return all dataframes
     return main_df, location_df, recruiter_df
 
@@ -134,10 +134,11 @@ def process_data_since(dt: datetime):
 
     location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
     location_df['location_id'] = range(len(location_df))
-    main_df.drop(['address', 'postcode', 'city'], axis=1, inplace=True)
+    main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
     # Return all dataframes
     return main_df, location_df, recruiter_df
 
 
 df,locdf,recdf =process_locations()
-print(recdf)
+for column in df.columns:
+    print(column)
