@@ -94,3 +94,5 @@ def parseFile(json_object: str) -> pd.DataFrame:
     #df_tech_scores = pd.DataFrame.from_dict([json_object.get('tech_self_score',{})])
     df = pd.DataFrame({key: json_object[key] for key in json_object if key not in ['tech_self_score','strengths','weaknesses']},index=[0])
     return df, df_tech_scores, df_strengths, df_weaknesses
+
+getAllDataAsCSV()
