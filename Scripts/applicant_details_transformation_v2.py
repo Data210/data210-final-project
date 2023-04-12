@@ -40,7 +40,8 @@ def parseFile(text: str) -> pd.DataFrame:
     df['applicant_id'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
                                                         '', regex=True) + df['iddate']
     # Drop month column as found in invited_date column
-    df = df.drop(columns=['month'])
+    df = df.drop(columns=['month','id'])
+
     return df
 
 def getData(keys: list) -> pd.DataFrame:
@@ -91,6 +92,9 @@ def getAllDataAsCSV(filename = 'applicants_clean.csv'):
 
 def recruit() -> pd.DataFrame:
     main_df = getAllData()
+    #fix recruiter names, case-by-case basis unfortunately
+    main_df['invited_by']=main_df['invited_by'].replace('Bruno Belbrook','Bruno Bellbrook')
+    main_df['invited_by'] = main_df['invited_by'].replace('Fifi Etton', 'Fifi Eton')
 
     unique_recruiters = main_df['invited_by'].unique()
     recruiter_ids = {name: i + 1 for i, name in enumerate(unique_recruiters)}
@@ -108,9 +112,33 @@ def process_locations() -> pd.DataFrame:
     # Create a new dataframe 'location_df' with unique values of 'address', 'postcode', 'city', and 'applicant_id'
     location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
     location_df['location_id'] = range(len(location_df))
-    main_df.drop(['address', 'postcode', 'city'], axis=1, inplace=True)
+    main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
     # Return all dataframes
     return main_df, location_df, recruiter_df
 
 #this is final method needed for sql, unless we need to write csv
 
+def process_data_since(dt: datetime):
+    main_df=getDataSince(dt)
+    main_df['invited_by'] = main_df['invited_by'].replace('Bruno Belbrook', 'Bruno Bellbrook')
+    main_df['invited_by'] = main_df['invited_by'].replace('Fifi Etton', 'Fifi Eton')
+
+    unique_recruiters = main_df['invited_by'].unique()
+    recruiter_ids = {name: i + 1 for i, name in enumerate(unique_recruiters)}
+
+    # Replace the 'invited_by' column with 'recruiter_id'
+    main_df['recruiter_id'] = main_df['invited_by'].map(recruiter_ids)
+
+    # Create a dataframe of unique recruiters and their IDs
+    recruiter_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
+
+    location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
+    location_df['location_id'] = range(len(location_df))
+    main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
+    # Return all dataframes
+    return main_df, location_df, recruiter_df
+
+
+df,locdf,recdf =process_locations()
+for column in df.columns:
+    print(column)
