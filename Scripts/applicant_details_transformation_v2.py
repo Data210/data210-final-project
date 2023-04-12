@@ -130,7 +130,7 @@ def process_data_since(dt: datetime):
     main_df['recruiter_id'] = main_df['invited_by'].map(recruiter_ids)
 
     # Create a dataframe of unique recruiters and their IDs
-    recruiters_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
+    recruiter_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
 
     location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
     location_df['location_id'] = range(len(location_df))
