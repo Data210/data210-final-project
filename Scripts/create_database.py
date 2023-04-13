@@ -2,13 +2,17 @@ import sqlalchemy as db
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Date, ForeignKey, Boolean
 from sqlalchemy_utils import database_exists, create_database
 from dotenv import load_dotenv
+from connection_string import create_connection_string
 import os
 
 load_dotenv()  # Load environment variables from .env file
 
 db_password = os.getenv("DB_PASSWORD")
 
-engine = create_engine(f"mssql+pyodbc://sa:{db_password}@localhost:1433/Talent?driver=ODBC+Driver+17+for+SQL+Server")
+# engine = create_engine(f"mssql+pyodbc://sa:{db_password}@localhost:1433/Talent?driver=ODBC+Driver+17+for+SQL+Server")
+
+engine = create_engine(create_connection_string())
+print(engine)
 
 try:
     if database_exists(engine.url) == False:
