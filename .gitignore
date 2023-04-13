@@ -6,3 +6,5 @@ final-project-env
 .python-version
 __pycache__
 .env
+Scripts/output
+Scripts/Tests
