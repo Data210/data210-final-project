@@ -4,6 +4,7 @@ import pandas as pd
 import io
 import string
 
+
 def technologies():
 
     s3 = boto3.resource('s3')
@@ -38,12 +39,14 @@ def technologies():
     df_all['date'] = df_all['date'].dt.strftime('%Y%m%d')
 
 
+
     df_all['namestring'] = df_all['name'].str.replace('[ '+string.punctuation+']', '', regex=True)
     df_all['namestring'] = df_all['namestring'].str.lower()
 
     df_all['SpartaDayTalentID'] = df_all['namestring'].str.cat(df_all['date'], sep='')
 
     df_t = pd.merge(df_all, df, on='SpartaDayTalentID', how='outer')
+
 
     filtered_df = df_t.filter(regex='^tech_self_score|^SpartaDayTalentID$')
     filtered_df.columns = filtered_df.columns.str.replace("tech_self_score.", "")
@@ -62,8 +65,10 @@ def technologies():
     technologies = language_table
     technologies = technologies.reset_index(drop=True)
 
+
     tech_junction = tech_self_scores
     tech_junction = tech_junction.reset_index(drop=True)
 
     return technologies, tech_junction
+
 
