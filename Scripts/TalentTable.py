@@ -64,6 +64,6 @@ Academy_Locations = academy_table
 Academy_Locations.reset_index(drop=True, inplace=True)
 Academy_Locations.set_index('academy_location_id', inplace=True)
 
-print(Talent.head())
+#print(Talent.head())
 
-print(Academy_Locations.head())
+#print(Academy_Locations.head())
