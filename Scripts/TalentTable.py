@@ -1,6 +1,3 @@
-
-
-
 import sparta_day_transformation
 import boto3
 import json
@@ -66,4 +63,3 @@ def Talent():
     Academy_Locations.set_index('academy_location_id', inplace=True)
 
     return Talent, Academy_Locations
-
