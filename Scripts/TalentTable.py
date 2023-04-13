@@ -37,21 +37,23 @@ def Talent():
     # convert the datetime values to a string with the desired format
     df_table['date'] = df_table['date'].dt.strftime('%Y%m%d')
 
-    df_table['name'] = df_table['name'].str.replace(' ', '')
-    df_table['name'] = df_table['name'].str.lower()
+    df_table['namestring'] = df_table['name'].str.replace(' ', '')
+    df_table['namestring'] = df_table['namestring'].str.lower()
     df_table.head()
 
-    df_table['SpartaDayTalentID'] = df_table['name'].str.cat(df_table['date'], sep='')
+    df_table['SpartaDayTalentID'] = df_table['namestring'].str.cat(df_table['date'], sep='')
 
     df_t = pd.merge(df_table, df, on='SpartaDayTalentID')
 
-    df_clean = df_t[['SpartaDayTalentID','date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
+    df_clean = df_t[['SpartaDayTalentID','name','date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
+
+    
 
     df_clean['academyid'] = pd.factorize(df_clean['Academy'])[0]
     academy_table = df_clean[['academyid', 'Academy']].drop_duplicates().reset_index(drop=True)
     df_clean = df_clean.drop(columns=['Academy'])
 
-    df_clean.rename(columns={"SpartaDayTalentID": "applicant_id", "academyid": "academy_location_id", "Psychometrics": "psycometric_results", "Presentation": "presentation_results"}, inplace=True)
+    df_clean.rename(columns={"SpartaDayTalentID": "applicant_id", "academyid": "academy_location_id", "Psychometrics": "psyhcometric_results", "Presentation": "presentation_results"}, inplace=True)
     academy_table.rename(columns={"academyid": "academy_location_id", "Academy": "location_name"}, inplace=True)
 
     Talent = df_clean
@@ -63,3 +65,7 @@ def Talent():
     Academy_Locations.set_index('academy_location_id', inplace=True)
 
     return Talent, Academy_Locations
+
+df_talent, academy = Talent()
+
+print(df_talent.head())
