@@ -1,7 +1,9 @@
-import sparta_day_transformation
 import boto3
 import json
 import pandas as pd
+import io
+import sparta_day_transformation
+import string
 
 def Talent():
 
@@ -37,35 +39,33 @@ def Talent():
     # convert the datetime values to a string with the desired format
     df_table['date'] = df_table['date'].dt.strftime('%Y%m%d')
 
-    df_table['namestring'] = df_table['name'].str.replace(' ', '')
+
+    df_table['namestring'] = df_table['name'].str.replace('[ '+string.punctuation+']', '', regex=True)
+
     df_table['namestring'] = df_table['namestring'].str.lower()
-    df_table.head()
 
     df_table['SpartaDayTalentID'] = df_table['namestring'].str.cat(df_table['date'], sep='')
 
-    df_t = pd.merge(df_table, df, on='SpartaDayTalentID')
+    df_table = df_table.drop_duplicates()
 
-    df_clean = df_t[['SpartaDayTalentID','name','date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
+    df_t = pd.merge(df_table, df, on='SpartaDayTalentID', how='outer')
 
-    
+    df_clean = df_t[['SpartaDayTalentID','name','Date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
 
     df_clean['academyid'] = pd.factorize(df_clean['Academy'])[0]
+    df_clean['academyid'] = df_clean['academyid'].astype('int')
+    df_clean['academyid'] = df_clean['academyid'] + 1
     academy_table = df_clean[['academyid', 'Academy']].drop_duplicates().reset_index(drop=True)
     df_clean = df_clean.drop(columns=['Academy'])
 
-    df_clean.rename(columns={"SpartaDayTalentID": "applicant_id", "academyid": "academy_location_id", "Psychometrics": "psyhcometric_results", "Presentation": "presentation_results"}, inplace=True)
+    df_clean.rename(columns={"SpartaDayTalentID": "applicant_id", "academyid": "academy_location_id", "Psychometrics": "psychometric_result", "Presentation": "presentation_result"}, inplace=True)
     academy_table.rename(columns={"academyid": "academy_location_id", "Academy": "location_name"}, inplace=True)
 
     Talent = df_clean
     Talent.reset_index(drop=True, inplace=True)
-    Talent.set_index('applicant_id', inplace=True)
+
 
     Academy_Locations = academy_table
     Academy_Locations.reset_index(drop=True, inplace=True)
-    Academy_Locations.set_index('academy_location_id', inplace=True)
 
     return Talent, Academy_Locations
-
-df_talent, academy = Talent()
-
-print(df_talent.head())
