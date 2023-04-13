@@ -4,6 +4,7 @@ import re
 import string
 import io
 from datetime import datetime, timezone
+from dateutil.parser import parse
 pd.options.mode.chained_assignment = None
 pd.set_option('display.max_columns', None)
 # Config
@@ -72,9 +73,7 @@ def getDataSince(dt: datetime):
 
 
 def getAllData() -> pd.DataFrame:
-    """
-    Returns a DataFrame with ALL the Sparta Day records in the bucket
-    """
+
     applicants_file_keys = []
     # Find all files with .txt extension in bucket
     for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
@@ -119,26 +118,37 @@ def process_locations() -> pd.DataFrame:
 #this is final method needed for sql, unless we need to write csv
 
 def process_data_since(dt: datetime):
+
     main_df=getDataSince(dt)
-    main_df['invited_by'] = main_df['invited_by'].replace('Bruno Belbrook', 'Bruno Bellbrook')
-    main_df['invited_by'] = main_df['invited_by'].replace('Fifi Etton', 'Fifi Eton')
+    if not main_df.empty:
+        main_df['invited_by'] = main_df['invited_by'].replace('Bruno Belbrook', 'Bruno Bellbrook')
+        main_df['invited_by'] = main_df['invited_by'].replace('Fifi Etton', 'Fifi Eton')
 
-    unique_recruiters = main_df['invited_by'].unique()
-    recruiter_ids = {name: i + 1 for i, name in enumerate(unique_recruiters)}
+        unique_recruiters = main_df['invited_by'].unique()
+        recruiter_ids = {name: i + 1 for i, name in enumerate(unique_recruiters)}
 
-    # Replace the 'invited_by' column with 'recruiter_id'
-    main_df['recruiter_id'] = main_df['invited_by'].map(recruiter_ids)
+        # Replace the 'invited_by' column with 'recruiter_id'
+        main_df['recruiter_id'] = main_df['invited_by'].map(recruiter_ids)
 
-    # Create a dataframe of unique recruiters and their IDs
-    recruiter_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
+        # Create a dataframe of unique recruiters and their IDs
+        recruiter_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
 
-    location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
-    location_df['location_id'] = range(len(location_df))
-    main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
-    # Return all dataframes
-    return main_df, location_df, recruiter_df
+        location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
+        location_df['location_id'] = range(len(location_df))
+        main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
+        # Return all dataframes
+        return main_df, location_df, recruiter_df
+    else:
+        return "No New Records."
 
+def Update_Data(time):
+    dt=parse(time)
+    output= applicant_details_transformation_v2.process_data_since(dt)
 
-df,locdf,recdf =process_locations()
-for column in df.columns:
-    print(column)
+    if len(output) == 3:
+        main_df, location_df, recruiter_df = output
+        return main_df, location_df, recruiter_df
+    elif len(output) == 15:
+        print(output)
+    else:
+        print("Unexpected")
