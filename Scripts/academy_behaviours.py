@@ -61,7 +61,7 @@ df['behaviour_id'] = df['behaviour_id'].str.replace(' ', '_')
 df['trainer'] = df['trainer'].replace('Ely Kely', 'Elly Kelly')
 
 #CREATING SPARTA TABLE
-spartans = df[['behaviour_id','name', 'trainer', 'course_name']]
+spartans = df[['behaviour_id','name','date', 'trainer', 'course_name']]
 trainer_dict = {
     'Gregor Gomez': 1,
     'Bruce Lugo': 2,
@@ -115,12 +115,4 @@ course = spartans[['course_name','course_id']]
 trainer = spartans[['trainer','trainer_id']]
 
 #CREATING SPARTA TABLE
-spartans = spartans[['behaviour_id', 'name', 'trainer_id', 'course_id']]
-
-
-
-# print both tables
-print(spartans.head(5))
-print(behaviour.head(5))
-print(course.head(5))
-print(trainer.head(5))
+spartans = spartans[['behaviour_id', 'name', 'date','trainer_id', 'course_id']]

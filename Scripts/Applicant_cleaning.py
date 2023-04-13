@@ -141,14 +141,14 @@ def process_data_since(dt: datetime):
     else:
         return "No New Records."
 
-def Update_Data(time):
-    dt=parse(time)
-    output= applicant_details_transformation_v2.process_data_since(dt)
+# def Update_Data(time):
+#     dt=parse(time)
+#     output= applicant_details_transformation_v2.process_data_since(dt)
 
-    if len(output) == 3:
-        main_df, location_df, recruiter_df = output
-        return main_df, location_df, recruiter_df
-    elif len(output) == 15:
-        print(output)
-    else:
-        print("Unexpected")
+#     if len(output) == 3:
+#         main_df, location_df, recruiter_df = output
+#         return main_df, location_df, recruiter_df
+#     elif len(output) == 15:
+#         print(output)
+#     else:
+#         print("Unexpected")

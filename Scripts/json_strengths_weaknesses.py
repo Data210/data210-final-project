@@ -1,5 +1,5 @@
 import pandas as pd
-from Scripts.s3 import S3Client
+from s3 import S3Client
 import string
 
 
@@ -30,6 +30,7 @@ def pull_json_from_s3(bucket_name, prefix):
                 data = client.getJSON(bucket_name, key)
                 try:
                     df = pd.json_normalize(data)
+                    df['json_key'] = key.split('Talent/')[1].split('.json')[0]
                 except ValueError:
                     print(f"Unable to normalize data from {key}")
                     continue
@@ -77,9 +78,9 @@ def generate_strengths(df):
         return None, None
 
     try:
-        df_strengths = df[['applicant_id', 'strengths']].explode('strengths')
+        df_strengths = df[['json_key', 'strengths']].explode('strengths')
         df_strengths = df_strengths.dropna()
-        df_strengths = df_strengths.set_index('applicant_id')
+        df_strengths = df_strengths.set_index('json_key')
         df_strengths = df_strengths.reset_index()
 
         unique_strengths = df_strengths['strengths'].unique()
@@ -89,7 +90,7 @@ def generate_strengths(df):
 
         df_strengths_joined = pd.merge(df_strengths, strengths, left_on='strengths', right_on='strength',
                                        how='left')
-        strengths_junction = df_strengths_joined[['applicant_id', 'strength_id']]
+        strengths_junction = df_strengths_joined[['json_key', 'strength_id']]
 
         return strengths, strengths_junction
     except Exception as e:
@@ -115,9 +116,9 @@ def generate_weaknesses(df):
 
     try:
         # use explode function to split the list column into multiple rows
-        df_weaknesses = df[['applicant_id', 'weaknesses']].explode('weaknesses')
+        df_weaknesses = df[['json_key', 'weaknesses']].explode('weaknesses')
         df_weaknesses = df_weaknesses.dropna()
-        df_weaknesses = df_weaknesses.set_index('applicant_id')
+        df_weaknesses = df_weaknesses.set_index('json_key')
         df_weaknesses = df_weaknesses.reset_index()
         print(df_weaknesses.head())
 
@@ -128,7 +129,7 @@ def generate_weaknesses(df):
 
         df_weaknesses_joined = pd.merge(df_weaknesses, weaknesses, left_on='weaknesses', right_on='weakness',
                                         how='left')
-        weaknesses_junction = df_weaknesses_joined[['applicant_id', 'weakness_id']]
+        weaknesses_junction = df_weaknesses_joined[['json_key', 'weakness_id']]
 
         return weaknesses, weaknesses_junction
     except Exception as e:
