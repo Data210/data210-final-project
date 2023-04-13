@@ -1,8 +1,0 @@
-env
-venv
-final-project-env
-.idea
-.gitignore
-.python-version
-__pycache__
-.env
