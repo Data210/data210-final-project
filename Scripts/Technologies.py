@@ -43,7 +43,7 @@ def technologies():
     df_all['namestring'] = df_all['name'].str.replace('[ '+string.punctuation+']', '', regex=True)
     df_all['namestring'] = df_all['namestring'].str.lower()
 
-    df_all['SpartaDayTalentID'] = df_all['namestring'].str.cat(df_all['date'], sep='')
+    df_all['SpartaDayTalentID'] = df_all["json_key"]#df_all['namestring'].str.cat(df_all['date'], sep='')
 
     df_t = pd.merge(df_all, df, on='SpartaDayTalentID', how='outer')
 
@@ -58,9 +58,9 @@ def technologies():
     df=df.reset_index(drop=True)
 
     language_table = df[['language_id', 'languages']].drop_duplicates().reset_index(drop=True)
-    tech_self_scores = df[['language_id','SpartaDayTalentID','scores']]
-    tech_self_scores.rename(columns={"language_id": "tech_id", "SpartaDayTalentID": "applicant_id", "scores": "score"}, inplace=True)
-    language_table.rename(columns={"languages": "techname", "language_id": "tech_id"}, inplace=True)
+    tech_self_scores = df[['language_id','scores',"SpartaDayTalentID"]]
+    tech_self_scores.rename(columns={"language_id": "tech_id", "SpartaDayTalentID": "json_key", "scores": "score"}, inplace=True)
+    language_table.rename(columns={"languages": "tech_name", "language_id": "tech_id"}, inplace=True)
 
     technologies = language_table
     technologies = technologies.reset_index(drop=True)

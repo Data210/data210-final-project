@@ -78,7 +78,7 @@ def parseTextFile(text: str) -> list:
         try:
             names, rest = line.rsplit("-", 1)
         except:
-            print(line)
+            print("Error in line:",line)
         names = names.replace(',', '')
         columns = (names + ',' + rest).split(',')
         row = columns[0].split(" ", 1)+[re.search('([0-9]{1,3})/', columns[-2]).group(

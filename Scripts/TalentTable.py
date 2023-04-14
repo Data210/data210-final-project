@@ -31,7 +31,7 @@ def Talent():
 
     df = sparta_day_transformation.getAllData()
 
-    df_table = df_all[['name','date','self_development','financial_support_self','result','course_interest','geo_flex']]
+    df_table = df_all[['json_key','name','date','self_development','financial_support_self','result','course_interest','geo_flex']]
 
     df_table['date'] = df_table['date'].str.replace('//', '/')
     df_table['date'] = pd.to_datetime(df_table['date'], format='%d/%m/%Y')
@@ -50,7 +50,7 @@ def Talent():
 
     df_t = pd.merge(df_table, df, on='SpartaDayTalentID', how='outer')
 
-    df_clean = df_t[['SpartaDayTalentID','name','Date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
+    df_clean = df_t[['json_key','SpartaDayTalentID','name','Date','self_development','financial_support_self','result','course_interest','Psychometrics','Presentation','geo_flex','Academy']]
 
     df_clean['academyid'] = pd.factorize(df_clean['Academy'])[0]
     df_clean['academyid'] = df_clean['academyid'].astype('int')

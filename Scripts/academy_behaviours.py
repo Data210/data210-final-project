@@ -35,11 +35,11 @@ null_values_summary = pd.DataFrame({
     'Null Values Percentage': null_values_percentage
 })
 
-print(null_values_summary)
+#print(null_values_summary)
 #see if we have duplicate names
 duplicate_rows = df[df['name'].duplicated()]
 duplicate_names = duplicate_rows['name'].unique()
-print("Duplicate names:", list(duplicate_names))
+#print("Duplicate names:", list(duplicate_names))
 # change in lower cases
 # df['name'] = df['name'].str.lower()
 # df['trainer'] = df['trainer'].str.lower()
@@ -49,9 +49,7 @@ df.columns = [col.lower() for col in df.columns]
 
 #to remove.0 from our values
 cols_to_convert = [col for col in df.columns if col.startswith(('analytic_', 'independent_', 'determined_', 'professional_', 'studious_', 'imaginative_'))]
-print(cols_to_convert)
 df[cols_to_convert] = df[cols_to_convert].astype(str)
-print(df[cols_to_convert])
 
 df['str_date'] = df['date'].dt.strftime('%Y-%m-%d')
 # print(df['str_date'])
@@ -61,7 +59,7 @@ df['behaviour_id'] = df['behaviour_id'].str.replace(' ', '_')
 df['trainer'] = df['trainer'].replace('Ely Kely', 'Elly Kelly')
 
 #CREATING SPARTA TABLE
-spartans = df[['behaviour_id','name', 'trainer', 'course_name']]
+spartans = df[['behaviour_id','name','date', 'trainer', 'course_name']]
 trainer_dict = {
     'Gregor Gomez': 1,
     'Bruce Lugo': 2,
@@ -115,12 +113,4 @@ course = spartans[['course_name','course_id']]
 trainer = spartans[['trainer','trainer_id']]
 
 #CREATING SPARTA TABLE
-spartans = spartans[['behaviour_id', 'name', 'trainer_id', 'course_id']]
-
-
-
-# print both tables
-print(spartans.head(5))
-print(behaviour.head(5))
-print(course.head(5))
-print(trainer.head(5))
+spartans = spartans[['behaviour_id', 'name', 'date','trainer_id', 'course_id']]
