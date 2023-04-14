@@ -1,5 +1,15 @@
 # data210-final-project
 
+Requirements:
+  - Docker container 
+  - Microsoft SQL server hosted locally 
+
+Run the script In order????
+
+(ask def script)
+
+
+
 Documentation on /Scripts, and what everything in there is for:
 
 s3.py : Complies commonly used functions to be callable in other scripts.
