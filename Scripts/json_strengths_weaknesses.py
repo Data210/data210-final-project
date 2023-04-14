@@ -120,7 +120,7 @@ def generate_weaknesses(df):
         df_weaknesses = df_weaknesses.dropna()
         df_weaknesses = df_weaknesses.set_index('json_key')
         df_weaknesses = df_weaknesses.reset_index()
-        print(df_weaknesses.head())
+        #print(df_weaknesses.head())
 
         unique_weaknesses = df_weaknesses['weaknesses'].unique()
         # Create a new dataframe with strength_id and strength columns

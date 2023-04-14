@@ -35,11 +35,11 @@ null_values_summary = pd.DataFrame({
     'Null Values Percentage': null_values_percentage
 })
 
-print(null_values_summary)
+#print(null_values_summary)
 #see if we have duplicate names
 duplicate_rows = df[df['name'].duplicated()]
 duplicate_names = duplicate_rows['name'].unique()
-print("Duplicate names:", list(duplicate_names))
+#print("Duplicate names:", list(duplicate_names))
 # change in lower cases
 # df['name'] = df['name'].str.lower()
 # df['trainer'] = df['trainer'].str.lower()
@@ -49,9 +49,7 @@ df.columns = [col.lower() for col in df.columns]
 
 #to remove.0 from our values
 cols_to_convert = [col for col in df.columns if col.startswith(('analytic_', 'independent_', 'determined_', 'professional_', 'studious_', 'imaginative_'))]
-print(cols_to_convert)
 df[cols_to_convert] = df[cols_to_convert].astype(str)
-print(df[cols_to_convert])
 
 df['str_date'] = df['date'].dt.strftime('%Y-%m-%d')
 # print(df['str_date'])
