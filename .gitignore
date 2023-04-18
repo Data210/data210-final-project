@@ -6,3 +6,4 @@ Test_Data
 .env
 .DS_Store
 .python-version
+.vs
