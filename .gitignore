@@ -4,3 +4,5 @@ __pycache__
 .idea
 Test_Data
 .env
+.DS_Store
+.python-version
