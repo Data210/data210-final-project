@@ -110,15 +110,12 @@ def process_locations() -> pd.DataFrame:
 
     # Create a new dataframe 'location_df' with unique values of 'address', 'postcode', 'city', and 'applicant_id'
     # print("Creating address")
-    main_df = main_df.drop_duplicates().reset_index(
-        drop=True).reset_index(names=['applicant_id'])
+    #main_df = main_df.drop_duplicates().reset_index(drop=True).reset_index(names=['applicant_id'])
 
-    personal_details_df = main_df[['applicant_id',  'name', 'gender', 'dob', 'email', 'phone_number', 'address',
-                                   'postcode', 'city']].drop_duplicates().reset_index(drop=True).reset_index(names=['person_id'])
-    main_df = pd.merge(main_df, personal_details_df['applicant_id','person_id'], on=['applicant_id'])
+    personal_details_df = main_df[['applicant_id', 'name', 'gender', 'dob', 'email', 'phone_number', 'address', 'postcode', 'city','uni','degree']].drop_duplicates().reset_index(drop=True).reset_index(names=['person_id'])
+    main_df = pd.merge(main_df, personal_details_df[['applicant_id','person_id']], on=['applicant_id'])
 
-    address_df = personal_details_df[['address', 'postcode', 'city']].drop_duplicates(
-    ).reset_index(drop=True).reset_index(names=['address_id'])
+    address_df = personal_details_df[['address', 'postcode', 'city']].drop_duplicates().reset_index(drop=True).reset_index(names=['address_id'])
     # print("Merging main df")
     personal_details_df = pd.merge(personal_details_df, address_df, on=['address', 'postcode', 'city'])
     # print("Creating postcodes")
@@ -134,11 +131,14 @@ def process_locations() -> pd.DataFrame:
     address_df.city = address_df.city.map(
         dict(zip(city_df.city.to_list(), city_df.city_id.to_list())))
     # print("Creating city")
-    uni_df = main_df[['uni']].drop_duplicates().reset_index(
+    degree_df = personal_details_df[['degree']].drop_duplicates().reset_index(drop=True).reset_index(names=['degree_id'])
+    # print("Replacing city")
+    personal_details_df.degree = personal_details_df.degree.map(dict(zip(degree_df.degree.to_list(), degree_df.degree_id.to_list())))
+    # print("Creating city")
+    uni_df = personal_details_df[['uni']].drop_duplicates().reset_index(
         drop=True).reset_index(names=['uni_id'])
     # print("Replacing city")
-    main_df.uni = main_df.uni.map(
-        dict(zip(uni_df.uni.to_list(), uni_df.uni_id.to_list())))
+    personal_details_df.uni = personal_details_df.uni.map(dict(zip(uni_df.uni.to_list(), uni_df.uni_id.to_list())))
 
     main_df = main_df.drop(
         ['address', 'postcode', 'city', 'invited_by'], axis=1)
@@ -146,8 +146,12 @@ def process_locations() -> pd.DataFrame:
         columns={'address': 'address_id', 'uni': 'uni_id'})
     address_df = address_df.rename(
         columns={'postcode': 'postcode_id', 'city': 'city_id'})
+    personal_details_df = personal_details_df.rename(
+        columns={'degree': 'degree_id', 'uni': 'uni_id'})
+    
+    personal_details_df = personal_details_df.drop(['city','address','postcode','applicant_id'],axis=1)
     # Return all dataframes
-    return main_df, address_df, postcode_df, city_df, recruiter_df
+    return main_df[['applicant_id','invited_date','person_id','recruiter_id']], personal_details_df, uni_df, degree_df, address_df, postcode_df, city_df, recruiter_df
 
 # this is final method needed for sql, unless we need to write csv
 
