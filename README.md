@@ -20,9 +20,11 @@ Creates dataframe from all applicant csv, cleans data and creates unique ID.
 Creates dataframe from all academy csv, cleans data. (Note:will be changed to .py in future)
 
 #### connection_string.py
-Creates a connection string from the contents of the config_file.ini in Scrpts folder and .env file in the data210-final-project folder
-config_file.ini contains info on the database, .env file contains username and password info
-connection string has structure : {dialect}://{db_username}:{db_password}@{server}:{port}/{database_name}?driver={driver}
+Creates a connection string from the contents of the config_file.ini in Scrpts folder and .env file in the data210-final-project folder.
+
+config_file.ini contains info on the database, .env file contains username and password info.
+
+Connection string has structure : {dialect}://{db_username}:{db_password}@{server}:{port}/{database_name}?driver={driver}
 
 #### json_pandas.py
 Converts data provided by client in JSON format to a pandas dataframe, then creates seperate dataframes for strenghts and weaknesses.
