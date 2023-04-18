@@ -37,43 +37,50 @@ def getData(keys: list) -> pd.DataFrame:
     """
     # Create empty df and loop through all files, parsing and concatenating to main df
     df = pd.DataFrame()
-    df_tech_scores = pd.DataFrame()
-    df_strengths = pd.DataFrame()
-    df_weaknesses = pd.DataFrame()
+    df_tech_junction = pd.DataFrame()
+    df_strength_junction = pd.DataFrame()
+    df_weakness_junction = pd.DataFrame()
     for key in keys:
         json_object = client.getJSON(bucket_name,key)
-        temp_df, temp_df_strengths, temp_df_weaknesses, temp_df_tech_scores = parseFile(json_object)
+        temp_df, temp_df_strength, temp_df_weakness, temp_df_tech_score = parseFile(json_object)
         #Get unique ID from file name
         key_id = key.split('Talent/')[1].split('.json')[0]
-        temp_df['json_key'] = key_id
-        temp_df_tech_scores['json_key'] = key_id
-        temp_df_strengths['json_key'] = key_id
-        temp_df_weaknesses['json_key'] = key_id
-        #temp_df_tech_scores = pd.melt(temp_df_tech_scores, id_vars='json_key', value_vars=temp_df_tech_scores.columns[:-1], var_name='language', value_name='score')
+        temp_df['talent_id'] = key_id
+        temp_df_tech_score['talent_id'] = key_id
+        temp_df_strength['talent_id'] = key_id
+        temp_df_weakness['talent_id'] = key_id
+        #temp_df_tech_score = pd.melt(temp_df_tech_score, id_vars='json_key', value_vars=temp_df_tech_score.columns[:-1], var_name='language', value_name='score')
         
         #Add record to final DataFrames
         df = pd.concat([df,temp_df])
-        df_tech_scores = pd.concat([df_tech_scores,temp_df_tech_scores])
-        df_strengths = pd.concat([df_strengths,temp_df_strengths])
-        df_weaknesses = pd.concat([df_weaknesses,temp_df_weaknesses])
+        df_tech_junction = pd.concat([df_tech_junction,temp_df_tech_score])
+        df_strength_junction = pd.concat([df_strength_junction,temp_df_strength])
+        df_weakness_junction = pd.concat([df_weakness_junction,temp_df_weakness])
 
     # Force correct types
-    df_tech_scores['score'] = df_tech_scores['score'].astype(int)
+    df_tech_junction['score'] = df_tech_junction['score'].astype(int)
     df['date'] = pd.to_datetime(df.date.str.replace('//','/'),dayfirst=True)
     df['self_development'] = df['self_development'].map(dict(Yes=True,No=False))
     df['geo_flex'] = df['geo_flex'].map(dict(Yes=True,No=False))
     df['financial_support_self'] = df['financial_support_self'].map(dict(Yes=True,No=False))
-    df['result'] = df['result'].map({'Pass': 1, 'Fail':0})
+    df['result'] = df['result'].map({'Pass': True, 'Fail':False})
 
-    df_strength = df_strengths.strength.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['id'])
-    df_weakness = df_weaknesses.weakness.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['id'])
-    df_tech = df_tech_scores.language.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['id'])
+    df_strength = df_strength_junction.strength.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['strength_id'])
+    df_weakness = df_weakness_junction.weakness.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['weakness_id'])
+    df_tech = df_tech_junction.language.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['tech_id'])
 
-    df_strengths.strength = df_strengths.strength.map(dict(zip(df_strength.strength.to_list(),df_strength.id.to_list())))
-    df_weaknesses.weakness = df_weaknesses.weakness.map(dict(zip(df_weakness.weakness.to_list(),df_weakness.id.to_list())))
-    df_tech_scores.language = df_tech_scores.language.map(dict(zip(df_tech.language.to_list(),df_tech.id.to_list())))
+    df_strength_junction.strength = df_strength_junction.strength.map(dict(zip(df_strength.strength.to_list(),df_strength.strength_id.to_list())))
+    df_weakness_junction.weakness = df_weakness_junction.weakness.map(dict(zip(df_weakness.weakness.to_list(),df_weakness.weakness_id.to_list())))
+    df_tech_junction.language = df_tech_junction.language.map(dict(zip(df_tech.language.to_list(),df_tech.tech_id.to_list())))
 
-    return df, df_strengths, df_weaknesses, df_tech_scores, df_strength, df_weakness, df_tech,
+    df_strength_junction = df_strength_junction.rename(columns={'strength':'strength_id'})
+    df_weakness_junction = df_weakness_junction.rename(columns={'weakness':'weakness_id'})
+    df_tech_junction = df_tech_junction.rename(columns={'language':'tech_id'})
+
+    df_tech = df_tech.rename(columns={'language':'tech_name','id':'tech_id'})
+    df = df.rename(columns={'result':'pass','course_interest':'stream_id'})
+
+    return df, df_strength_junction, df_weakness_junction, df_tech_junction, df_strength, df_weakness, df_tech,
 
 # Save results to a file
 def getAllDataAsCSV():

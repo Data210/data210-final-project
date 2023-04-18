@@ -108,6 +108,8 @@ def process_locations() -> pd.DataFrame:
     # print("Running recruit")
     main_df, recruiter_df = recruit()
 
+    main_df.name = main_df.name.map(lambda x: x.title())
+
     # Create a new dataframe 'location_df' with unique values of 'address', 'postcode', 'city', and 'applicant_id'
     # print("Creating address")
     #main_df = main_df.drop_duplicates().reset_index(drop=True).reset_index(names=['applicant_id'])

@@ -45,14 +45,14 @@ def getData(keys: list) -> pd.DataFrame:
         sparta_day_result_df = pd.concat(
             [sparta_day_result_df, pd.DataFrame(parseTextFile(text))])
     # Set column names
-    sparta_day_result_df.columns = ["name", "psychometrics", "presentation", "date", "academy"]
+    sparta_day_result_df.columns = ["name", "psychometric_result", "presentation_result", "date", "academy"]
 
     # Additional cleaning, strip whitespace, enforce data types
     # sparta_day_result_df.FirstName = sparta_day_result_df.FirstName.str.strip(" ")
     # sparta_day_result_df.LastName = sparta_day_result_df.LastName.str.strip(" ")
     sparta_day_result_df.name = sparta_day_result_df.name.str.strip(" ")
-    sparta_day_result_df.psychometrics = sparta_day_result_df.psychometrics.astype(int)
-    sparta_day_result_df.presentation = sparta_day_result_df.presentation.astype(int)
+    sparta_day_result_df.psychometric_result = sparta_day_result_df.psychometric_result.astype(int)
+    sparta_day_result_df.presentation_result = sparta_day_result_df.presentation_result.astype(int)
     sparta_day_result_df.date = sparta_day_result_df.date = pd.to_datetime(sparta_day_result_df.date)
 
     sparta_day_df = sparta_day_result_df[['date','academy']].drop_duplicates().reset_index(drop=True).reset_index(names=['sparta_day_id'])
@@ -64,6 +64,8 @@ def getData(keys: list) -> pd.DataFrame:
     sparta_day_df.academy = sparta_day_df.academy.map(dict(zip(academy_df.academy.to_list(),academy_df.academy_id.to_list())))
     #Rename
     sparta_day_df = sparta_day_df.rename(columns={'academy':'academy_id','date':'sparta_day_date'})
+
+    sparta_day_result_df = sparta_day_result_df.reset_index(drop=True).reset_index(names=['sparta_day_result_id'])
     # Add ID
     # sparta_day_df["SpartaDayTalentID"] = sparta_day_df.FirstName.str.lower(
     # ) + sparta_day_df.LastName.str.lower() + sparta_day_df.Date.dt.strftime('%Y%m%d')
@@ -99,7 +101,7 @@ def parseTextFile(text: str) -> list:
         except:
             print("Error in line:",line)
         names = names.replace(',', '')
-        names = list(map(lambda x: x.title(), names.split(" ",1)))
+        names = list(map(lambda x: x.title(), names.split(" ")))
         names = " ".join(names)
         columns = (names + ',' + rest).split(',')
         row = [columns[0], re.search('([0-9]{1,3})/', columns[-2]).group(

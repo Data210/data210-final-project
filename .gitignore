@@ -1,7 +1,7 @@
 venv
 env
 .env
-__pycache__
+Scripts/__pycache__
 .idea
 Test_Data
 .env

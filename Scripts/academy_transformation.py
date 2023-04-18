@@ -87,8 +87,12 @@ def getData(keys: list) -> pd.DataFrame:
 
     # df_behaviour = df_behaviour_score[['behaviour']].drop_duplicates().reset_index(drop=True).reset_index(names=['behaviour_id'])
     # df_behaviour_score.behaviour = df_behaviour_score.behaviour.map(dict(zip(df_behaviour.behaviour.to_list(),df_behaviour.behaviour_id.to_list())))
+    
 
-    return df[['spartan_id','course_id','trainer_id']], df_course, df_stream, df_trainer, df_behaviour_score #, df_behaviour
+    df_course = df_course.rename(columns={'date':'start_date'})
+    df_course.start_date = pd.to_datetime(df_course.start_date,dayfirst=False)
+
+    return df[['spartan_id','course_id','trainer_id','name']], df_course, df_stream, df_trainer, df_behaviour_score #, df_behaviour
 
 # Save results to a file
 def getAllDataAsCSV():
