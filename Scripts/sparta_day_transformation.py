@@ -63,7 +63,7 @@ def getData(keys: list) -> pd.DataFrame:
     #print("Replacing city")
     sparta_day_df.academy = sparta_day_df.academy.map(dict(zip(academy_df.academy.to_list(),academy_df.academy_id.to_list())))
     #Rename
-    sparta_day_df = sparta_day_df.rename({'academy':'academy_id'})
+    sparta_day_df = sparta_day_df.rename(columns={'academy':'academy_id','date':'sparta_day_date'})
     # Add ID
     # sparta_day_df["SpartaDayTalentID"] = sparta_day_df.FirstName.str.lower(
     # ) + sparta_day_df.LastName.str.lower() + sparta_day_df.Date.dt.strftime('%Y%m%d')
