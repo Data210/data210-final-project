@@ -10,12 +10,13 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import numpy as np
+from connection_string import create_connection_string
 #load_dotenv()  # Load environment variables from .env file
 #db_password = os.getenv("DB_PASSWORD")
 
 # %%
 print('Creating Engine...')
-engine = create_engine("mssql+pyodbc://admin:spartaglobal@sparta-global.cjxe5m4vhofo.eu-west-2.rds.amazonaws.com:1433/project?driver=ODBC+Driver+17+for+SQL+Server")
+engine = create_engine(create_connection_string())
 print('\rDone!')
 # %%
 try:
@@ -49,7 +50,7 @@ with engine.connect() as conn:
                         Column('uni', String),
                         Column('degree', String),
                         Column('invited_date', Date),
-                        Column('recruiter_id', Integer, ForeignKey('Recruiters.recruiter_id'))                  
+                        Column('recruiter_id', Integer, ForeignKey('Recruiters.recruiter_id'))
                         )
 
     table_name = 'Location'
@@ -142,15 +143,15 @@ with engine.connect() as conn:
                         )
 
     table_name = 'Behaviours'
-    behaviours_table = Table(table_name, metadata, 
-                            Column('behaviour_id', Integer, primary_key=True, autoincrement=True), 
-                            Column('spartan_id', Integer, ForeignKey('Spartans.spartan_id')), 
-                            Column('week_number', Integer, nullable=False), 
-                            Column('analytic', Integer), 
-                            Column('independent', Integer), 
-                            Column('imaginative', Integer), 
-                            Column('studious', Integer), 
-                            Column('professional', Integer), 
+    behaviours_table = Table(table_name, metadata,
+                            Column('behaviour_id', Integer, primary_key=True, autoincrement=True),
+                            Column('spartan_id', Integer, ForeignKey('Spartans.spartan_id')),
+                            Column('week_number', Integer, nullable=False),
+                            Column('analytic', Integer),
+                            Column('independent', Integer),
+                            Column('imaginative', Integer),
+                            Column('studious', Integer),
+                            Column('professional', Integer),
                             Column('determined', Integer)
                             )
 
