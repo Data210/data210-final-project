@@ -25,6 +25,7 @@ for obj in bucket.objects.filter(Prefix=prefix):
 df = pd.concat(data, ignore_index=True)
 
 # CLEANING DATA
+
 # Calculate the number of null values per column
 null_values_count = df.isnull().sum()
 # Calculate the percentage of null values per column
@@ -40,10 +41,7 @@ print(null_values_summary)
 duplicate_rows = df[df['name'].duplicated()]
 duplicate_names = duplicate_rows['name'].unique()
 print("Duplicate names:", list(duplicate_names))
-# change in lower cases
-# df['name'] = df['name'].str.lower()
-# df['trainer'] = df['trainer'].str.lower()
-# df['course_name'] = df['course_name'].str.lower()
+
 #change columns to be in lower case
 df.columns = [col.lower() for col in df.columns]
 
@@ -52,9 +50,9 @@ cols_to_convert = [col for col in df.columns if col.startswith(('analytic_', 'in
 print(cols_to_convert)
 df[cols_to_convert] = df[cols_to_convert].astype(str)
 print(df[cols_to_convert])
-
+#Convert date to string datetime
 df['str_date'] = df['date'].dt.strftime('%Y-%m-%d')
-# print(df['str_date'])
+#creating behaviour_id
 df['behaviour_id'] = pd.concat([df['name'], df['str_date']], axis=1).apply(lambda x: ''.join(x), axis=1)
 df['behaviour_id'] = df['behaviour_id'].str.replace(' ', '_')
 #ely kely to elly kelly
@@ -62,29 +60,14 @@ df['trainer'] = df['trainer'].replace('Ely Kely', 'Elly Kelly')
 
 #CREATING SPARTA TABLE
 spartans = df[['behaviour_id','name', 'trainer', 'date', 'course_name']]
-trainer_dict = {
-    'Gregor Gomez': 1,
-    'Bruce Lugo': 2,
-    'Neil Mccarthy': 3,
-    'Rachel Richard': 4,
-    'Hamzah Melia': 5,
-    'Burhan Milner': 6,
-    'Elly Kelly': 7,
-    'Trixie Orange': 8,
-    'John Sandbox': 9,
-    'Edward Reinhart': 10,
-    'Lucy Foster': 11,
-    'Gina Cartwright': 12,
-    'Eshal Brandt': 13,
-    'Macey Broughton': 14,
-    'Igor Coates': 15,
-    'Mohammad Velazquez': 16,
-    'Martina Meadows': 17
-}
-spartans['trainer_id'] = spartans['trainer'].map(trainer_dict).astype(int)
+# Creating course ID and trainer ID
+trainer_ids = {}
+id_counter = 1
+for trainer in spartans['trainer'].unique():
+    trainer_ids[trainer] = id_counter
+    id_counter += 1
+spartans['trainer_id'] = spartans['trainer'].map(trainer_ids).astype(int)
 spartans['course_id'] = spartans['course_name'].str.slice(stop=3).str.upper()
-
-
 
 #CREATING BEHAVIOUR TABLE
 #we want to separate weeks and traits
@@ -123,4 +106,4 @@ course = course.drop_duplicates(subset=['course_name', 'course_id']).reset_index
 print(spartans.head(5))
 print(behaviour.head(5))
 print(course.head(5))
-print(trainer.head(5))
+print(trainer.head(5)) 
