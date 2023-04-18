@@ -1,13 +1,13 @@
 # data210-final-project
 
-### Requirements:
-  - Docker container 
-  - Microsoft SQL server hosted locally
-  - Python modules as per requirements.txt
-
 # Set-up Steps:
+
 ### Create Database
-  - Set up your own Database, can either be set up locally or hosted remotely, as long as you have a connection string.
+#### Docker (local)
+  - (having installed docker) db-status.py will download docker image and setup container
+#### Cloud 
+  - create a suitable instance on the cloud to host MSSQL database
+
 ### Set up connection info
   - Add your connection string information to the config.ini file.
   - Add your `DB_USERNAME` and `DB_PASSWORD`, to your .env file.
