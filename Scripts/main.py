@@ -3,19 +3,21 @@ import sys
 # caution: path[0] is reserved for script path (or '' in REPL)
 #sys.path.insert(1, 'D:\\Sparta\\final_project\\data210-final-project\\Scripts')
 import sqlalchemy as db
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Date, ForeignKey, Boolean
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Date, ForeignKey, Boolean, PrimaryKeyConstraint
 from sqlalchemy import text
 from sqlalchemy_utils import database_exists, create_database
 from dotenv import load_dotenv
 import os
 import pandas as pd
 import numpy as np
-#load_dotenv()  # Load environment variables from .env file
+from connection_string import create_connection_string
+load_dotenv()  # Load environment variables from .env file
 #db_password = os.getenv("DB_PASSWORD")
-
+connect_string = create_connection_string()
 # %%
 print('Creating Engine...')
-engine = create_engine("mssql+pyodbc://admin:spartaglobal@sparta-global.cjxe5m4vhofo.eu-west-2.rds.amazonaws.com:1433/project?driver=ODBC+Driver+17+for+SQL+Server")
+# engine = create_engine("mssql+pyodbc://admin:spartaglobal@sparta-global.cjxe5m4vhofo.eu-west-2.rds.amazonaws.com:1433/project?driver=ODBC+Driver+17+for+SQL+Server")
+engine = create_engine(connect_string)
 print('\rDone!')
 # %%
 try:
@@ -32,82 +34,129 @@ with engine.connect() as conn:
     metadata = MetaData()
 
     #define tables
-    table_name = 'Recruiters'
+    table_name = 'Postcode'
     recruiters_table = Table (table_name, metadata,
-                            Column('recruiter_id', Integer, primary_key=True, autoincrement=True),
-                            Column('recruiter_name', String)
+                            Column('postcode_id', Integer, primary_key=True, autoincrement=True),
+                            Column('postcode', String)
                             )
-
-    table_name = 'Applicants'
+    
+    table_name = 'City'
+    recruiters_table = Table (table_name, metadata,
+                            Column('city_id', Integer, primary_key=True, autoincrement=True),
+                            Column('city', String)
+                            )
+    
+    table_name = 'Address'
+    recruiters_table = Table (table_name, metadata,
+                            Column('address_id', Integer, primary_key=True, autoincrement=True),
+                            Column('address', String),
+                            Column('postcode_id', Integer, ForeignKey('Postcode.postcode_id')),
+                            Column('city_id', Integer, ForeignKey('City.city_id'))   
+                            )
+    
+    table_name = 'University'
+    recruiters_table = Table (table_name, metadata,
+                            Column('university_id', Integer, primary_key=True, autoincrement=True),
+                            Column('university', String)
+                            )
+    
+    table_name = 'Degree'
+    recruiters_table = Table (table_name, metadata,
+                            Column('degree_id', Integer, primary_key=True, autoincrement=True),
+                            Column('degree', String)
+                            )
+    
+    table_name = 'Personal_Details'
     applicants_table = Table(table_name, metadata,
-                        Column('applicant_id', String(50), primary_key=True),
+                        Column('person_id', Integer, primary_key=True, autoincrement=True),
                         Column('name', String),
                         Column('gender', String),
                         Column('dob', Date),
                         Column('email', String),
                         Column('phone_number', String),
-                        Column('uni', String),
-                        Column('degree', String),
-                        Column('invited_date', Date),
-                        Column('recruiter_id', Integer, ForeignKey('Recruiters.recruiter_id'))                  
+                        Column('address_id', Integer, ForeignKey('Address.address_id')),
+                        Column('degree_id', Integer, ForeignKey('Degree.degree_id')),
+                        Column('university_id', Integer, ForeignKey('University.university_id'))                
                         )
 
-    table_name = 'Location'
-    location_table = Table (table_name, metadata,
-                            Column('location_id', Integer, primary_key=True, autoincrement=True),
-                            Column('applicant_id', String(50), ForeignKey('Applicants.applicant_id')),
-                            Column('address', String),
-                            Column('postcode', String),
-                            Column('city', String)
+    table_name = 'Recruiter'
+    recruiters_table = Table (table_name, metadata,
+                            Column('recruiter_id', Integer, primary_key=True, autoincrement=True),
+                            Column('recruiter_name', String)
                             )
 
-    table_name = 'Academy_Locations'
+    table_name = 'Applicant'
+    applicants_table = Table(table_name, metadata,
+                        Column('applicant_id', Integer, primary_key=True, autoincrement=True),
+                        Column('invited_date', Date),
+                        Column('person_id', Integer, ForeignKey('Personal_Details.person_id')),
+                        Column('recruiter_id', Integer, ForeignKey('Recruiter.recruiter_id'))                  
+                        )
+    
+    table_name = 'Academy_Location'
     Academy_location_table = Table (table_name, metadata,
                         Column('academy_location_id', Integer, primary_key=True, autoincrement=True),
                         Column('location_name', String)
                         )
+    
+    table_name = 'Sparta_Day'
+    Academy_location_table = Table (table_name, metadata,
+                        Column('sparta_day_id', Integer, primary_key=True, autoincrement=True),
+                        Column('sparta_day_date', String),
+                        Column('academy_location_id', Integer, ForeignKey('Academy_Location.academy_location_id'))
+                        )
+    
+    table_name = 'Sparta_Day_Result'
+    Academy_location_table = Table (table_name, metadata,
+                        Column('sparta_day_result_id', Integer, primary_key=True, autoincrement=True),
+                        Column('psychometric_result', Integer),
+                        Column('presentation_result', Integer),
+                        Column('sparta_day_id', Integer, ForeignKey('Sparta_Day.sparta_day_id'))
+                        )
+    
+    table_name = 'Stream'
+    Academy_location_table = Table (table_name, metadata,
+                        Column('stream_id', Integer, primary_key=True, autoincrement=True),
+                        Column('stream', String)
+                        )
 
     table_name = 'Talent'
     talent_table = Table(table_name, metadata,
-                                Column('talent_id', Integer, primary_key=True,autoincrement=True),
-                                Column('json_key', Integer, unique=True, nullable=True),
-                                Column('applicant_id', String(50), ForeignKey('Applicants.applicant_id'), unique=True),
-                                Column('date', Date, nullable=True),
+                                Column('talent_id', Integer, primary_key=True),
+                                Column('applicant_id', Integer, ForeignKey('Applicant.applicant_id')),
                                 Column('self_development', Boolean),
                                 Column('financial_support_self', Boolean),
-                                Column('result', Integer),
-                                Column('course_interest', String),
-                                Column('psychometric_result', Integer),
-                                Column('presentation_result', Integer),
+                                Column('pass', Boolean),
+                                Column('stream_id', Integer, ForeignKey('Stream.stream_id')),
                                 Column('geo_flex', Boolean),
-                                Column('academy_location_id', Integer, ForeignKey('Academy_Locations.academy_location_id'))
+                                Column('sparta_day_result_id', Integer, ForeignKey('Sparta_Day_Result.sparta_day_result_id'))
                                 )
 
-    table_name = 'Strengths'
+    table_name = 'Strength'
     strengths_table = Table(table_name, metadata,
-                        Column('strength_id', Integer, primary_key=True),
+                        Column('strength_id', Integer, primary_key=True, autoincrement=True),
                         Column('strength', String(30), unique=True, nullable=False)
                         )
 
-    table_name = 'Weaknesses'
+    table_name = 'Weakness'
     strengths_table = Table(table_name, metadata,
-                        Column('weakness_id', Integer, primary_key=True),
+                        Column('weakness_id', Integer, primary_key=True, autoincrement=True),
                         Column('weakness', String(30), unique=True, nullable=False)
                         )
 
-    table_name = 'Strengths_Junction'
+    table_name = 'Strength_Junction'
     strengths_junction = Table(table_name,metadata,
-                            Column('json_key', Integer, ForeignKey('Talent.json_key')),
-                            Column('strength_id', Integer, ForeignKey('Strengths.strength_id'))
+                            Column('talent_id', Integer, ForeignKey('Talent.talent_id')),
+                            Column('strength_id', Integer, ForeignKey('Strength.strength_id'))
                             )
 
-    table_name = 'Weaknesses_Junction'
+    table_name = 'Weakness_Junction'
     weaknesses_junction = Table(table_name,metadata,
-                            Column('json_key', Integer, ForeignKey('Talent.json_key')),
+                            Column('talent_id', Integer, ForeignKey('Talent.talent_id')),
                             Column('weakness_id', Integer)
                             )
 
-    table_name = 'Tech_Self_Scores'
+    table_name = 'Technology'
     tech_table = Table(table_name, metadata,
                     Column('tech_id', Integer, primary_key=True, autoincrement=True),
                     Column('tech_name', String(50), unique=True, nullable=False)
@@ -115,43 +164,44 @@ with engine.connect() as conn:
 
     table_name = 'Tech_Junction'
     tech_junction_table = Table(table_name, metadata,
-                                Column('tech_id', Integer, ForeignKey("Tech_Self_Scores")),
-                                Column('json_key', Integer, ForeignKey('Talent.json_key')),
+                                Column('tech_id', Integer, ForeignKey("Technology")),
+                                Column('talent_id', Integer, ForeignKey('Talent.talent_id')),
                                 Column('score', Integer, nullable=False)
                                 )
 
-    table_name = 'Trainers'
+    table_name = 'Trainer'
     trainers_table = Table(table_name, metadata,
                             Column('trainer_id', String(30), primary_key=True),
                             Column('trainer', String(50), nullable=False, unique=True)
                             )
 
-    table_name = 'Courses'
+    table_name = 'Course'
     courses_table = Table(table_name, metadata,
-                        Column('course_id', String(30), primary_key=True),
-                        Column('course_name', String, nullable=False)
+                        Column('course_id', Integer, primary_key=True),
+                        Column('stream_id', Integer, ForeignKey('Stream.stream_id')),
+                        Column('course_number', String),
+                        Column('start_date', Date)
                         )
 
-    table_name = 'Spartans'
+    table_name = 'Spartan'
     spartans_table = Table(table_name, metadata,
-                        Column('spartan_id', Integer, primary_key=True,autoincrement=True),
-                        Column('json_key', Integer, ForeignKey('Talent.json_key'), unique=True, nullable=True),
-                        Column('trainer_id', String(30), ForeignKey('Trainers.trainer_id'), nullable=False),
-                        Column('course_id', String(30), ForeignKey('Courses.course_id'), nullable=False),
-                        Column('date', Date, nullable=True),
+                        Column('spartan_id', Integer, primary_key=True, autoincrement=True),
+                        Column('talent_id', Integer, ForeignKey('Talent.talent_id'), unique=True, nullable=True),
+                        Column('trainer_id', String(30), ForeignKey('Trainer.trainer_id'), nullable=False),
+                        Column('course_id', Integer, ForeignKey('Course.course_id'), nullable=False),
                         )
 
-    table_name = 'Behaviours'
+    table_name = 'Behaviour'
     behaviours_table = Table(table_name, metadata, 
-                            Column('behaviour_id', Integer, primary_key=True, autoincrement=True), 
-                            Column('spartan_id', Integer, ForeignKey('Spartans.spartan_id')), 
-                            Column('week_number', Integer, nullable=False), 
+                            Column('spartan_id', Integer, ForeignKey('Spartan.spartan_id')), 
+                            Column('week_number', Integer), 
                             Column('analytic', Integer), 
                             Column('independent', Integer), 
                             Column('imaginative', Integer), 
                             Column('studious', Integer), 
                             Column('professional', Integer), 
-                            Column('determined', Integer)
+                            Column('determined', Integer),
+                            PrimaryKeyConstraint('spartan_id', 'week_number')
                             )
 
     metadata.create_all(engine)
@@ -163,6 +213,14 @@ import TalentTable
 importlib.reload(TalentTable)
 import Applicant_cleaning
 importlib.reload(Applicant_cleaning)
+
+# %%
+import importlib
+import sparta_day_transformation
+importlib.reload(sparta_day_transformation)
+
+# %%
+df_sparta_day_result, df_sparta_day, df_academy = sparta_day_transformation.getAllData()
 
 # %%
 import importlib
@@ -297,10 +355,10 @@ with engine.connect() as conn:
 print('Inserting Academy_Locations (3/15)...')
 # Insert Academy_Locations table - NO DEPENDENCIES
 with engine.connect() as conn:
-    conn.execute(text("SET IDENTITY_INSERT Strengths OFF"))
-    conn.execute(text("SET IDENTITY_INSERT Academy_Locations ON"))
-    result = df_academy_locations.to_sql('Academy_Locations',conn,if_exists='append',index=False)
-    conn.execute(text("SET IDENTITY_INSERT Academy_Locations OFF"))
+    # conn.execute(text("SET IDENTITY_INSERT Strengths OFF"))
+    conn.execute(text("SET IDENTITY_INSERT Academy_Location ON"))
+    result = df_academy.to_sql('Academy_Location',conn,if_exists='append',index=False)
+    conn.execute(text("SET IDENTITY_INSERT Academy_Location OFF"))
     conn.commit()
 
 # %%
