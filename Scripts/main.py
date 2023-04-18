@@ -35,19 +35,19 @@ with engine.connect() as conn:
 
     #define tables
     table_name = 'Postcode'
-    recruiters_table = Table (table_name, metadata,
+    postcode_table = Table (table_name, metadata,
                             Column('postcode_id', Integer, primary_key=True, autoincrement=True),
                             Column('postcode', String)
                             )
     
     table_name = 'City'
-    recruiters_table = Table (table_name, metadata,
+    city_table = Table (table_name, metadata,
                             Column('city_id', Integer, primary_key=True, autoincrement=True),
                             Column('city', String)
                             )
     
     table_name = 'Address'
-    recruiters_table = Table (table_name, metadata,
+    address_table = Table (table_name, metadata,
                             Column('address_id', Integer, primary_key=True, autoincrement=True),
                             Column('address', String),
                             Column('postcode_id', Integer, ForeignKey('Postcode.postcode_id')),
@@ -55,19 +55,19 @@ with engine.connect() as conn:
                             )
     
     table_name = 'University'
-    recruiters_table = Table (table_name, metadata,
+    university_table = Table (table_name, metadata,
                             Column('university_id', Integer, primary_key=True, autoincrement=True),
                             Column('university', String)
                             )
     
     table_name = 'Degree'
-    recruiters_table = Table (table_name, metadata,
+    degree_table = Table (table_name, metadata,
                             Column('degree_id', Integer, primary_key=True, autoincrement=True),
                             Column('degree', String)
                             )
     
     table_name = 'Personal_Details'
-    applicants_table = Table(table_name, metadata,
+    personal_details_table = Table(table_name, metadata,
                         Column('person_id', Integer, primary_key=True, autoincrement=True),
                         Column('name', String),
                         Column('gender', String),
@@ -80,13 +80,13 @@ with engine.connect() as conn:
                         )
 
     table_name = 'Recruiter'
-    recruiters_table = Table (table_name, metadata,
+    recruiter_table = Table (table_name, metadata,
                             Column('recruiter_id', Integer, primary_key=True, autoincrement=True),
                             Column('recruiter_name', String)
                             )
 
     table_name = 'Applicant'
-    applicants_table = Table(table_name, metadata,
+    applicant_table = Table(table_name, metadata,
                         Column('applicant_id', Integer, primary_key=True, autoincrement=True),
                         Column('invited_date', Date),
                         Column('person_id', Integer, ForeignKey('Personal_Details.person_id')),
@@ -100,14 +100,14 @@ with engine.connect() as conn:
                         )
     
     table_name = 'Sparta_Day'
-    Academy_location_table = Table (table_name, metadata,
+    Sparta_Day_table = Table (table_name, metadata,
                         Column('sparta_day_id', Integer, primary_key=True, autoincrement=True),
                         Column('sparta_day_date', String),
                         Column('academy_location_id', Integer, ForeignKey('Academy_Location.academy_location_id'))
                         )
     
     table_name = 'Sparta_Day_Result'
-    Academy_location_table = Table (table_name, metadata,
+    Sparta_Day_Result_table = Table (table_name, metadata,
                         Column('sparta_day_result_id', Integer, primary_key=True, autoincrement=True),
                         Column('psychometric_result', Integer),
                         Column('presentation_result', Integer),
@@ -115,7 +115,7 @@ with engine.connect() as conn:
                         )
     
     table_name = 'Stream'
-    Academy_location_table = Table (table_name, metadata,
+    Stream_table = Table (table_name, metadata,
                         Column('stream_id', Integer, primary_key=True, autoincrement=True),
                         Column('stream', String)
                         )
@@ -133,25 +133,25 @@ with engine.connect() as conn:
                                 )
 
     table_name = 'Strength'
-    strengths_table = Table(table_name, metadata,
+    strength_table = Table(table_name, metadata,
                         Column('strength_id', Integer, primary_key=True, autoincrement=True),
                         Column('strength', String(30), unique=True, nullable=False)
                         )
 
     table_name = 'Weakness'
-    strengths_table = Table(table_name, metadata,
+    weakness_table = Table(table_name, metadata,
                         Column('weakness_id', Integer, primary_key=True, autoincrement=True),
                         Column('weakness', String(30), unique=True, nullable=False)
                         )
 
     table_name = 'Strength_Junction'
-    strengths_junction = Table(table_name,metadata,
+    strength_junction = Table(table_name,metadata,
                             Column('talent_id', Integer, ForeignKey('Talent.talent_id')),
                             Column('strength_id', Integer, ForeignKey('Strength.strength_id'))
                             )
 
     table_name = 'Weakness_Junction'
-    weaknesses_junction = Table(table_name,metadata,
+    weakness_junction = Table(table_name,metadata,
                             Column('talent_id', Integer, ForeignKey('Talent.talent_id')),
                             Column('weakness_id', Integer)
                             )
@@ -170,13 +170,13 @@ with engine.connect() as conn:
                                 )
 
     table_name = 'Trainer'
-    trainers_table = Table(table_name, metadata,
+    trainer_table = Table(table_name, metadata,
                             Column('trainer_id', String(30), primary_key=True),
                             Column('trainer', String(50), nullable=False, unique=True)
                             )
 
     table_name = 'Course'
-    courses_table = Table(table_name, metadata,
+    course_table = Table(table_name, metadata,
                         Column('course_id', Integer, primary_key=True),
                         Column('stream_id', Integer, ForeignKey('Stream.stream_id')),
                         Column('course_number', String),
@@ -184,7 +184,7 @@ with engine.connect() as conn:
                         )
 
     table_name = 'Spartan'
-    spartans_table = Table(table_name, metadata,
+    spartan_table = Table(table_name, metadata,
                         Column('spartan_id', Integer, primary_key=True, autoincrement=True),
                         Column('talent_id', Integer, ForeignKey('Talent.talent_id'), unique=True, nullable=True),
                         Column('trainer_id', String(30), ForeignKey('Trainer.trainer_id'), nullable=False),
@@ -192,7 +192,7 @@ with engine.connect() as conn:
                         )
 
     table_name = 'Behaviour'
-    behaviours_table = Table(table_name, metadata, 
+    behaviour_table = Table(table_name, metadata, 
                             Column('spartan_id', Integer, ForeignKey('Spartan.spartan_id')), 
                             Column('week_number', Integer), 
                             Column('analytic', Integer), 
