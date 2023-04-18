@@ -1,5 +1,10 @@
 venv
 env
-__pycache__
+./*/__pycache__
+data210-final-project\__pycache__
 .idea
 Test_Data
+.env
+.DS_Store
+.python-version
+.vs
