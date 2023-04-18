@@ -11,6 +11,8 @@
 ### Set up connection info
   - Add your connection string information to the config.ini file.
   - Add your `DB_USERNAME` and `DB_PASSWORD`, to your .env file.
+### Install libraries
+  - Run `pip install -r requirements` to install the relevant libraries for the project.
 ### Run main.py
   - After setting up the connection, running main.py should add all the data to your database.
 
