@@ -44,7 +44,7 @@ Obtains the tech scores from JSON files as a csv.
 #### talent_sparta_results.py
 Outputs key interview metrics as a csv.
 
-# Original Entitiy Relationship Diagram
+# Original Entity Relationship Diagram
 
 ![alt text](https://github.com/Data210/data210-final-project/blob/bcde497a5d88bd809fb81ca5c724d9f70e3f3be8/Viz/original_erd.png?raw=true)
 
