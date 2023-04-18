@@ -41,3 +41,13 @@ Obtains the tech scores from JSON files as a csv.
 
 #### talent_sparta_results.py
 Outputs key interview metrics as a csv.
+
+# Tableau Cloud Output 
+
+#### Applicant Overview Dashboard 
+
+![alt text](https://github.com/Data210/data210-final-project/blob/fe579e507d969f2cf8b52c38f5c0a79d2e56a499/Viz/Sparta_Applicant_Dashbaord_Overview.png?raw=true)
+
+#### Inndividual Applicant Overview Dashboard 
+
+![alt text](https://github.com/Data210/data210-final-project/blob/fe579e507d969f2cf8b52c38f5c0a79d2e56a499/Viz/MicrosoftTeams-image%20(1).png?raw=true)
