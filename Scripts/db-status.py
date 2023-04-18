@@ -40,8 +40,8 @@ class DockerDebug:
             )
             print("Container created and running")
  
-
-debug = DockerDebug()
-result = debug.check_runnning()
-if result:
-    debug.check_container('azuresqledge')
+if __name__ == '__main__':
+    debug = DockerDebug()
+    result = debug.check_runnning()
+    if result:
+        debug.check_container('azuresqledge')
