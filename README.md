@@ -20,12 +20,13 @@ Creates dataframe from all applicant csv, cleans data and creates unique ID.
 Creates dataframe from all academy csv, cleans data. (Note:will be changed to .py in future)
 
 #### connection_string.py
-Creates a connection string from the contents of the config_file.ini in Scrpts folder and .env file in the data210-final-project folder
-config_file.ini contains info on the database, .env file contains username and password info
-connection string has structure : {dialect}://{db_username}:{db_password}@{server}:{port}/{database_name}?driver={driver}
+Creates a connection string from the contents of the config_file.ini in Scrpts folder and .env file in the data210-final-project folder.
 
-#### json_pandas.py
-Converts data provided by client in JSON format to a pandas dataframe, then creates seperate dataframes for strenghts and weaknesses.
+config_file.ini contains info on the database, .env file contains username and password info.
+
+Connection string has structure : {dialect}://{db_username}:{db_password}@{server}:{port}/{database_name}?driver={driver}
+
+json_pandas.py : Converts data provided by client in JSON format to a pandas dataframe, then creates seperate dataframes for strenghts and weaknesses.
 
 #### sparta_day_transformation.py
 Defines a function to parse text files provided by client, reads text files and writes them to a pandas dataframe, cleans the data and creates a unqiue ID. 
@@ -33,11 +34,20 @@ Defines a function to parse text files provided by client, reads text files and 
 #### create_database.py
 Creates initial database and tables using SQLAlchemy.
 
-#### academy_behaviours.py
-Creates behaviour, spartans, course and trainer dataframes from academy data.
+academy_behaviours.py : Creates behaviour, spartans, course and trainer dataframes from academy data.
 
 #### self_tech_scores.py
 Obtains the tech scores from JSON files as a csv.
 
 #### talent_sparta_results.py
 Outputs key interview metrics as a csv.
+
+# Tableau Cloud Output 
+
+#### Applicant Overview Dashboard 
+
+![alt text](https://github.com/Data210/data210-final-project/blob/fe579e507d969f2cf8b52c38f5c0a79d2e56a499/Viz/Sparta_Applicant_Dashbaord_Overview.png?raw=true)
+
+#### Inndividual Applicant Overview Dashboard 
+
+![alt text](https://github.com/Data210/data210-final-project/blob/fe579e507d969f2cf8b52c38f5c0a79d2e56a499/Viz/MicrosoftTeams-image%20(1).png?raw=true)
