@@ -39,27 +39,44 @@ def getData(keys: list) -> pd.DataFrame:
     """
     # Create empty df and loop through all files, parsing and concatenating to main df
     # Set column names
-    sparta_day_df = pd.DataFrame()
+    sparta_day_result_df = pd.DataFrame()
     for key in keys:
-        text = client.getCSV(bucket_name,key)
-        sparta_day_df = pd.concat([sparta_day_df,pd.DataFrame(parseTextFile(text))])
+        text = client.getCSV(bucket_name, key)
+        sparta_day_result_df = pd.concat(
+            [sparta_day_result_df, pd.DataFrame(parseTextFile(text))])
     # Set column names
-    sparta_day_df.columns = ["FirstName","LastName","Psychometrics","Presentation","Date","Academy"]
+    sparta_day_result_df.columns = ["name", "psychometrics", "presentation", "date", "academy"]
 
     # Additional cleaning, strip whitespace, enforce data types
-    sparta_day_df.FirstName = sparta_day_df.FirstName.str.strip(" ")
-    sparta_day_df.LastName = sparta_day_df.LastName.str.strip(" ")
-    sparta_day_df.Psychometrics = sparta_day_df.Psychometrics.astype(int)
-    sparta_day_df.Presentation = sparta_day_df.Presentation.astype(int)
-    sparta_day_df.Date = sparta_day_df.Date = pd.to_datetime(sparta_day_df.Date)
+    # sparta_day_result_df.FirstName = sparta_day_result_df.FirstName.str.strip(" ")
+    # sparta_day_result_df.LastName = sparta_day_result_df.LastName.str.strip(" ")
+    sparta_day_result_df.name = sparta_day_result_df.name.str.strip(" ")
+    sparta_day_result_df.psychometrics = sparta_day_result_df.psychometrics.astype(int)
+    sparta_day_result_df.presentation = sparta_day_result_df.presentation.astype(int)
+    sparta_day_result_df.date = sparta_day_result_df.date = pd.to_datetime(sparta_day_result_df.date)
 
+    sparta_day_df = sparta_day_result_df[['date','academy']].drop_duplicates().reset_index(drop=True).reset_index(names=['sparta_day_id'])
+    #Map back
+    sparta_day_result_df['sparta_day_id'] = sparta_day_result_df.date.map(dict(zip(sparta_day_df.date.to_list(),sparta_day_df.sparta_day_id.to_list())))
+    #
+    academy_df = sparta_day_df[['academy']].drop_duplicates().reset_index(drop=True).reset_index(names=['academy_id'])
+    #print("Replacing city")
+    sparta_day_df.academy = sparta_day_df.academy.map(dict(zip(academy_df.academy.to_list(),academy_df.academy_id.to_list())))
+    #Rename
+    sparta_day_df = sparta_day_df.rename({'academy':'academy_id'})
     # Add ID
-    sparta_day_df["SpartaDayTalentID"] = sparta_day_df.FirstName.str.lower() + sparta_day_df.LastName.str.lower() + sparta_day_df.Date.dt.strftime('%Y%m%d')
-    sparta_day_df["SpartaDayTalentID"] = sparta_day_df["SpartaDayTalentID"].str.replace('[ '+string.punctuation+']', '', regex=True)
+    # sparta_day_df["SpartaDayTalentID"] = sparta_day_df.FirstName.str.lower(
+    # ) + sparta_day_df.LastName.str.lower() + sparta_day_df.Date.dt.strftime('%Y%m%d')
+    # sparta_day_df["SpartaDayTalentID"] = sparta_day_df.name.str.lower(
+    # ) + sparta_day_df.date.dt.strftime('%Y%m%d')
+    # sparta_day_df["SpartaDayTalentID"] = sparta_day_df["SpartaDayTalentID"].str.replace(
+    #     '[ '+string.punctuation+']', '', regex=True)
 
-    return sparta_day_df
+    return sparta_day_result_df, sparta_day_df, academy_df
 
 # Save results to a file
+
+
 def getAllDataAsCSV(filename='sparta_day_clean.csv'):
     """
     Writes ALL the related records in the bucket to a .csv
@@ -68,6 +85,8 @@ def getAllDataAsCSV(filename='sparta_day_clean.csv'):
         getAllData().to_csv(file)
 
 # Utility function for parsing the sparta day .txt format
+
+
 def parseTextFile(text: str) -> list:
     """
     Takes in a string from the Sparta Day .txt files' body and returns a list of rows, each row is a list split by column
@@ -80,8 +99,10 @@ def parseTextFile(text: str) -> list:
         except:
             print("Error in line:",line)
         names = names.replace(',', '')
+        names = list(map(lambda x: x.title(), names.split(" ",1)))
+        names = " ".join(names)
         columns = (names + ',' + rest).split(',')
-        row = columns[0].split(" ", 1)+[re.search('([0-9]{1,3})/', columns[-2]).group(
+        row = [columns[0], re.search('([0-9]{1,3})/', columns[-2]).group(
             1), re.search('([0-9]{1,3})/', columns[-1]).group(1)]+[split[0], split[1].split(' ')[0]]
         table.append(row)
     return table

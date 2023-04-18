@@ -28,18 +28,6 @@ def parseFile(text: str) -> pd.DataFrame:
         'Int64', errors='raise').apply(str) + ' ' + df['month']
     # Convert the mixed date formats to datetime
     df['invited_date'] = pd.to_datetime(df['invited_date'], errors='raise', dayfirst=True, format='mixed')
-    # Create unique ID from lowercase name joined without spaces and invited_date in %Y%m%d format
-    df['iddate']=df['invited_date'].dt.strftime('%Y%m%d')
-    df['iddate'] = df['iddate'].astype(str)
-    df['iddate'] = df['iddate'].str.replace(".0", "")
-    for date in range(1, len(df['iddate'])):
-        if df.loc[date, 'iddate'] == "nan":
-            predate= date -1
-            df['iddate'][date]=df['iddate'][predate]
-            df['iddate'][date] =df['iddate'][date][:-2]
-            df['iddate'][date] = df['iddate'][date]+"00"
-    df['applicant_id'] = df['name'].str.lower().str.replace('[ '+string.punctuation+']',
-                                                        '', regex=True) + df['iddate']
     # Drop month column as found in invited_date column
     df = df.drop(columns=['month','id'])
 
@@ -100,6 +88,7 @@ def recruit() -> pd.DataFrame:
 
     # Replace the 'invited_by' column with 'recruiter_id'
     main_df['recruiter_id'] = main_df['invited_by'].map(recruiter_ids)
+    main_df = main_df.reset_index(drop=True).reset_index(names=['applicant_id'])
 
     # Create a dataframe of unique recruiters and their IDs
     recruiters_df = pd.DataFrame(list(recruiter_ids.items()), columns=['recruiter_name', 'recruiter_id'])
@@ -107,13 +96,32 @@ def recruit() -> pd.DataFrame:
     return main_df, recruiters_df
 
 def process_locations() -> pd.DataFrame:
+    #print("Running recruit")
     main_df, recruiter_df = recruit()
+
     # Create a new dataframe 'location_df' with unique values of 'address', 'postcode', 'city', and 'applicant_id'
-    location_df = main_df[['address', 'postcode', 'city', 'applicant_id']].drop_duplicates()
-    location_df['location_id'] = range(len(location_df))
-    main_df.drop(['address', 'postcode', 'city','invited_by'], axis=1, inplace=True)
+    #print("Creating address")
+    address_df = main_df[['address', 'postcode', 'city']].drop_duplicates().reset_index(drop=True).reset_index(names=['address_id'])
+    #print("Merging main df")
+    main_df = pd.merge(main_df,address_df,on=['address','postcode','city'])
+    #print("Creating postcodes")
+    postcode_df = address_df[['postcode']].drop_duplicates().reset_index(drop=True).reset_index(names=['postcode_id'])
+    #print("Reeplacing postcodes")
+    address_df.postcode = address_df.postcode.map(dict(zip(postcode_df.postcode.to_list(),postcode_df.postcode_id.to_list())))
+    #print("Creating city")
+    city_df = address_df[['city']].drop_duplicates().reset_index(drop=True).reset_index(names=['city_id'])
+    #print("Replacing city")
+    address_df.city = address_df.city.map(dict(zip(city_df.city.to_list(),city_df.city_id.to_list())))
+    #print("Creating city")
+    uni_df = main_df[['uni']].drop_duplicates().reset_index(drop=True).reset_index(names=['uni_id'])
+    #print("Replacing city")
+    main_df.uni = main_df.uni.map(dict(zip(uni_df.uni.to_list(),uni_df.uni_id.to_list())))
+
+    main_df = main_df.drop(['address','postcode', 'city','invited_by'], axis=1)
+    main_df = main_df.rename(columns={'address':'address_id','uni':'uni_id'})
+    address_df = address_df.rename(columns={'postcode':'postcode_id','city':'city_id'})
     # Return all dataframes
-    return main_df, location_df, recruiter_df
+    return main_df, address_df,postcode_df, city_df, recruiter_df
 
 #this is final method needed for sql, unless we need to write csv
 

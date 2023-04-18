@@ -42,7 +42,7 @@ def getData(keys: list) -> pd.DataFrame:
     df_weaknesses = pd.DataFrame()
     for key in keys:
         json_object = client.getJSON(bucket_name,key)
-        temp_df, temp_df_tech_scores, temp_df_strengths, temp_df_weaknesses = parseFile(json_object)
+        temp_df, temp_df_strengths, temp_df_weaknesses, temp_df_tech_scores = parseFile(json_object)
         #Get unique ID from file name
         key_id = key.split('Talent/')[1].split('.json')[0]
         temp_df['json_key'] = key_id
@@ -59,10 +59,21 @@ def getData(keys: list) -> pd.DataFrame:
 
     # Force correct types
     df_tech_scores['score'] = df_tech_scores['score'].astype(int)
+    df['date'] = pd.to_datetime(df.date.str.replace('//','/'),dayfirst=True)
     df['self_development'] = df['self_development'].map(dict(Yes=True,No=False))
     df['geo_flex'] = df['geo_flex'].map(dict(Yes=True,No=False))
     df['financial_support_self'] = df['financial_support_self'].map(dict(Yes=True,No=False))
-    return df, df_tech_scores, df_strengths, df_weaknesses
+    df['result'] = df['result'].map({'Pass': 1, 'Fail':0})
+
+    df_strength = df_strengths.strength.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['id'])
+    df_weakness = df_weaknesses.weakness.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['id'])
+    df_tech = df_tech_scores.language.to_frame().drop_duplicates().reset_index(drop=True).reset_index(names=['id'])
+
+    df_strengths.strength = df_strengths.strength.map(dict(zip(df_strength.strength.to_list(),df_strength.id.to_list())))
+    df_weaknesses.weakness = df_weaknesses.weakness.map(dict(zip(df_weakness.weakness.to_list(),df_weakness.id.to_list())))
+    df_tech_scores.language = df_tech_scores.language.map(dict(zip(df_tech.language.to_list(),df_tech.id.to_list())))
+
+    return df, df_strengths, df_weaknesses, df_tech_scores, df_strength, df_weakness, df_tech,
 
 # Save results to a file
 def getAllDataAsCSV():
@@ -70,7 +81,7 @@ def getAllDataAsCSV():
     Writes ALL the related records in the bucket to a .csv
     """
 
-    df, df_tech_scores, df_strengths, df_weaknesses = getAllData()
+    df, df_strengths, df_weaknesses, df_tech_scores  = getAllData()
 
     with open('talent_details.csv', 'w') as file:
         df.to_csv(file)
@@ -89,8 +100,8 @@ def parseFile(json_object: str) -> pd.DataFrame:
     languages = json_object.get('tech_self_score',{}).keys()
     scores = json_object.get('tech_self_score',{}).values()
     df_tech_scores = pd.DataFrame({'language': languages, 'score':scores})
-    df_strengths = pd.DataFrame({'strengths':json_object.get('strengths',[])})
-    df_weaknesses = pd.DataFrame({'weaknesses':json_object.get('weaknesses',[])})
+    df_strengths = pd.DataFrame({'strength':json_object.get('strengths',[])})
+    df_weaknesses = pd.DataFrame({'weakness':json_object.get('weaknesses',[])})
     #df_tech_scores = pd.DataFrame.from_dict([json_object.get('tech_self_score',{})])
     df = pd.DataFrame({key: json_object[key] for key in json_object if key not in ['tech_self_score','strengths','weaknesses']},index=[0])
-    return df, df_tech_scores, df_strengths, df_weaknesses
+    return df, df_strengths, df_weaknesses, df_tech_scores

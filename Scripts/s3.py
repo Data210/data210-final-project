@@ -23,7 +23,7 @@ class S3Client:
 
     def getDataFrame(self, bucket_name: str, key: str) -> pd.DataFrame:
         """
-        Given a bucket name, retrieves a DataFrame from that bucket at the path given by the key argument
+        Given a bucket name, retrieves a DataFrame stores as .csv from that bucket at the path given by the key argument
         """
         object = self.client.get_object(Bucket=bucket_name, Key=key)
         return pd.read_csv(io.StringIO(object['Body'].read().decode('utf-8')))
