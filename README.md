@@ -26,8 +26,7 @@ config_file.ini contains info on the database, .env file contains username and p
 
 Connection string has structure : {dialect}://{db_username}:{db_password}@{server}:{port}/{database_name}?driver={driver}
 
-#### json_pandas.py
-Converts data provided by client in JSON format to a pandas dataframe, then creates seperate dataframes for strenghts and weaknesses.
+json_pandas.py : Converts data provided by client in JSON format to a pandas dataframe, then creates seperate dataframes for strenghts and weaknesses.
 
 #### sparta_day_transformation.py
 Defines a function to parse text files provided by client, reads text files and writes them to a pandas dataframe, cleans the data and creates a unqiue ID. 
@@ -35,8 +34,7 @@ Defines a function to parse text files provided by client, reads text files and 
 #### create_database.py
 Creates initial database and tables using SQLAlchemy.
 
-#### academy_behaviours.py
-Creates behaviour, spartans, course and trainer dataframes from academy data.
+academy_behaviours.py : Creates behaviour, spartans, course and trainer dataframes from academy data.
 
 #### self_tech_scores.py
 Obtains the tech scores from JSON files as a csv.
