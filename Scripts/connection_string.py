@@ -24,3 +24,6 @@ def create_connection_string():
     db_username = os.getenv("DB_USERNAME")
     connection_string = f"{dialect}://{db_username}:{db_password}@{server}:{port}/{database_name}?driver={driver}"
     return connection_string
+
+
+print(create_connection_string())
