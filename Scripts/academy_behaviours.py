@@ -41,15 +41,22 @@ null_values_summary = pd.DataFrame({
 duplicate_rows = df[df['name'].duplicated()]
 duplicate_names = duplicate_rows['name'].unique()
 print("Duplicate names:", list(duplicate_names))
+#change columns in lower
+#change columns to be in lower case
+df.columns = [col.lower() for col in df.columns]
 
-#print("Duplicate names:", list(duplicate_names))
-# change in lower cases
-# df['name'] = df['name'].str.lower()
-# df['trainer'] = df['trainer'].str.lower()
-# df['course_name'] = df['course_name'].str.lower()
-
+#to remove.0 from our values
+cols_to_convert = [col for col in df.columns if col.startswith(('analytic_', 'independent_', 'determined_', 'professional_', 'studious_', 'imaginative_'))]
+df[cols_to_convert] = df[cols_to_convert].astype(str)
 print(df[cols_to_convert])
+
 #Convert date to string datetime
+df['str_date'] = df['date'].dt.strftime('%Y-%m-%d')
+# print(df['str_date'])
+df['behaviour_id'] = pd.concat([df['name'], df['str_date']], axis=1).apply(lambda x: ''.join(x), axis=1)
+df['behaviour_id'] = df['behaviour_id'].str.replace(' ', '_')
+#ely kely to elly kelly
+df['trainer'] = df['trainer'].replace('Ely Kely', 'Elly Kelly')
 
 
 #CREATING SPARTA TABLE
@@ -61,27 +68,8 @@ for trainer in spartans['trainer'].unique():
     trainer_ids[trainer] = id_counter
     id_counter += 1
 spartans['trainer_id'] = spartans['trainer'].map(trainer_ids).astype(int)
-spartans = df[['behaviour_id','name','date', 'trainer', 'course_name']]
-trainer_dict = {
-    'Gregor Gomez': 1,
-    'Bruce Lugo': 2,
-    'Neil Mccarthy': 3,
-    'Rachel Richard': 4,
-    'Hamzah Melia': 5,
-    'Burhan Milner': 6,
-    'Elly Kelly': 7,
-    'Trixie Orange': 8,
-    'John Sandbox': 9,
-    'Edward Reinhart': 10,
-    'Lucy Foster': 11,
-    'Gina Cartwright': 12,
-    'Eshal Brandt': 13,
-    'Macey Broughton': 14,
-    'Igor Coates': 15,
-    'Mohammad Velazquez': 16,
-    'Martina Meadows': 17
-}
-spartans['trainer_id'] = spartans['trainer'].map(trainer_dict).astype(int)
+spartans['course_id'] = spartans['course_name'].str.slice(stop=3).str.upper()
+
 
 #CREATING BEHAVIOUR TABLE
 #we want to separate weeks and traits
