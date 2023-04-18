@@ -60,11 +60,11 @@ def getData(keys: list) -> pd.DataFrame:
     return sparta_day_df
 
 # Save results to a file
-def getAllDataAsCSV():
+def getAllDataAsCSV(filename='sparta_day_clean.csv'):
     """
-    Writes ALL the records in the bucket to a .csv
+    Writes ALL the related records in the bucket to a .csv
     """
-    with open('sparta_day_clean.csv', 'w') as file:
+    with open(filename, 'w') as file:
         getAllData().to_csv(file)
 
 # Utility function for parsing the sparta day .txt format
@@ -78,7 +78,7 @@ def parseTextFile(text: str) -> list:
         try:
             names, rest = line.rsplit("-", 1)
         except:
-            print(line)
+            print("Error in line:",line)
         names = names.replace(',', '')
         columns = (names + ',' + rest).split(',')
         row = columns[0].split(" ", 1)+[re.search('([0-9]{1,3})/', columns[-2]).group(

@@ -1,103 +1,165 @@
 import pandas as pd
-import boto3
-import json
+from s3 import S3Client
 import string
-from io import StringIO
-
-# Set up S3 client
-s3 = boto3.client('s3')
-
-# Define the S3 bucket name and file name
-bucket_name = 'data-eng-210-final-project'
-prefix = 'Talent/'
-
-# Initialize empty list to store DataFrames
-json_df = []
-
-# Iterate over all JSON files in S3 bucket with given prefix
-response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-
-# The code uses s3.list_objects_v2 to retrieve a list of objects from the S3 bucket with the given prefix.
-# the code then loops through the list of objects and checks if the key name ends with ".json".
-for obj in response['Contents']:
-    key = obj['Key']
-    if key.endswith('.json'):
-        # Read JSON file from S3 into DataFrame
-        # If the key ends with ".json", the code uses s3.get_object to read the contents of the file into a Python string.
-        # It then uses json.loads to convert the string into a Python dictionary, and
-        # pd.json_normalize to convert the dictionary into a Pandas DataFrame.
-        obj = s3.get_object(Bucket=bucket_name, Key=key)
-        body = obj['Body'].read().decode('utf-8')
-        data = json.loads(body)
-        try:
-            df = pd.json_normalize(data)
-        except ValueError:
-            print(f"Unable to normalize data from {key}")
-            continue
-
-        # Append DataFrame to list
-        json_df.append(df)
-
-# Concatenate all DataFrames into a single DataFrame
-df = pd.concat(json_df, ignore_index=True)
-
-# Replace double slashes with single slashes in the 'date' column
-df['date'] = df['date'].str.replace('//', '/')
-
-# Add sparta_day_person_id
-df["applicant_id"] = df["name"].str.lower() + pd.to_datetime(df['date'], dayfirst=True).dt.strftime('%Y%m%d')
-df["applicant_id"] = df["applicant_id"].str.replace('[ '+string.punctuation+']', '', regex=True)
-
-df = df.set_index('applicant_id')
-df = df.reset_index()
-
-print(df.head())
-
-# use explode function to split the list column into multiple rows
-df_strengths = df[['applicant_id', 'strengths']].explode('strengths')
-df_strengths = df_strengths.set_index('applicant_id')
-df_strengths = df_strengths.reset_index()
-
-strengths = df_strengths['strengths'].unique()
-# Create a new dataframe with strength_id and strength columns
-df_strengths_junction = pd.DataFrame({'strength_id': range(len(strengths)),
-                            'strength': strengths})
-
-print(df_strengths_junction.head())
-with open('df_strengths_junction.csv','w') as file:
-    df_strengths_junction.to_csv(file)
-
-df_strenghts_joined = pd.merge(df_strengths, df_strengths_junction,left_on='strengths', right_on='strength', how='left')
-#print(df_strenghts_joined.head(50))
-
-df_strength_id = df_strenghts_joined[['applicant_id','strength_id']]
-print(df_strength_id.head())
-with open('df_strength_id.csv','w') as file:
-    df_strength_id.to_csv(file)
 
 
+def pull_json_from_s3(bucket_name, prefix):
+    """
+    Pulls JSON data from an S3 bucket and converts it to a pandas DataFrame.
 
-# use explode function to split the list column into multiple rows
-df_weaknesses = df[['applicant_id', 'weaknesses']].explode('weaknesses')
-df_weaknesses = df_weaknesses.set_index('applicant_id')
-df_weaknesses = df_weaknesses.reset_index()
-print(df_weaknesses.head())
-# with open('weaknesses_json.csv','w') as file:
-#     df_weaknesses.to_csv(file)
+    Args:
+    - bucket_name: name of the bucket containing applicant json files
+    - prefix: prefix directory filter containing applicant json files
 
-weaknesses = df_weaknesses['weaknesses'].unique()
-# Create a new dataframe with strength_id and strength columns
-df_weaknesses_junction = pd.DataFrame({'weakness_id': range(len(weaknesses)),
-                            'weakness': weaknesses})
+    Returns:
+    - A pandas DataFrame containing all of the applicant JSON data from the S3 bucket.
+    """
+    # Set up S3 client
+    client = S3Client()
 
-print(df_weaknesses_junction.head())
-with open('df_weaknesses_junction.csv','w') as file:
-    df_weaknesses_junction.to_csv(file)
+    # Initialize empty list to store DataFrames
+    json_df = []
 
-df_weaknesses_joined = pd.merge(df_weaknesses, df_weaknesses_junction,left_on='weaknesses', right_on='weakness', how='left')
-#print(df_strenghts_joined.head(50))
+    try:
+        # Iterate over all JSON files in S3 bucket with given prefix
+        response = client.getAllObjects(bucket_name).filter(Prefix=prefix)
 
-df_weakness_id = df_weaknesses_joined[['applicant_id','weakness_id']]
-print(df_weakness_id.head())
-with open('df_weakness_id.csv','w') as file:
-    df_weakness_id.to_csv(file)
+        for obj in response:
+            key = obj.key
+            if key.endswith('.json'):
+                data = client.getJSON(bucket_name, key)
+                try:
+                    df = pd.json_normalize(data)
+                    df['json_key'] = key.split('Talent/')[1].split('.json')[0]
+                except ValueError:
+                    print(f"Unable to normalize data from {key}")
+                    continue
+                # Append DataFrame to list
+                json_df.append(df)
+    except Exception as e:
+        print(f"Error in retrieving data from S3: {str(e)}")
+        return None
+
+    # Check if any JSON files were retrieved
+    if len(json_df) == 0:
+        print(f"No JSON files found in S3 bucket: {bucket_name} with prefix: {prefix}")
+        return pd.DataFrame()
+
+    # Concatenate all DataFrames into a single DataFrame
+    df = pd.concat(json_df, ignore_index=True)
+
+    # Replace double slashes with single slashes in the 'date' column
+    df['date'] = df['date'].str.replace('//', '/')
+
+    # Add sparta_day_person_id
+    df["applicant_id"] = df["name"].str.lower() + pd.to_datetime(df['date'], dayfirst=True).dt.strftime('%Y%m%d')
+    df["applicant_id"] = df["applicant_id"].str.replace('[ ' + string.punctuation + ']', '', regex=True)
+
+    df = df.set_index('applicant_id')
+    df = df.reset_index()
+
+    return df
+
+
+def generate_strengths(df):
+    """
+    Generates a list of unique strengths and a junction table linking applicants to their strengths.
+
+    Args:
+    - df: a pandas DataFrame containing applicant data
+
+    Returns:
+    - A pandas DataFrame containing unique strengths and their IDs.
+    - A pandas DataFrame linking applicants to their strengths.
+    """
+    # use explode function to split the list column into multiple rows
+    if 'strengths' not in df.columns:
+        print("Column 'strengths' not found in input DataFrame")
+        return None, None
+
+    try:
+        df_strengths = df[['json_key', 'strengths']].explode('strengths')
+        df_strengths = df_strengths.dropna()
+        df_strengths = df_strengths.set_index('json_key')
+        df_strengths = df_strengths.reset_index()
+
+        unique_strengths = df_strengths['strengths'].unique()
+        # Create a new dataframe with strength_id and strength columns
+        strengths = pd.DataFrame({'strength_id': range(len(unique_strengths)),
+                                  'strength': unique_strengths})
+
+        df_strengths_joined = pd.merge(df_strengths, strengths, left_on='strengths', right_on='strength',
+                                       how='left')
+        strengths_junction = df_strengths_joined[['json_key', 'strength_id']]
+
+        return strengths, strengths_junction
+    except Exception as e:
+        print(f"Error in generating strengths data: {str(e)}")
+        return None, None
+
+
+def generate_weaknesses(df):
+    """
+   Generate weaknesses and weaknesses_junction dataframes from the given input dataframe.
+
+   Args:
+       df: Input dataframe containing applicant_id and weaknesses columns.
+
+   Returns:
+       weaknesses: Dataframe containing unique weaknesses and their corresponding weakness_id.
+       weaknesses_junction: Dataframe containing applicant_id and their corresponding weakness_id.
+   """
+    # use explode function to split the list column into multiple rows
+    if 'weaknesses' not in df.columns:
+        print("Column 'weaknesses' not found in input DataFrame")
+        return None, None
+
+    try:
+        # use explode function to split the list column into multiple rows
+        df_weaknesses = df[['json_key', 'weaknesses']].explode('weaknesses')
+        df_weaknesses = df_weaknesses.dropna()
+        df_weaknesses = df_weaknesses.set_index('json_key')
+        df_weaknesses = df_weaknesses.reset_index()
+        #print(df_weaknesses.head())
+
+        unique_weaknesses = df_weaknesses['weaknesses'].unique()
+        # Create a new dataframe with strength_id and strength columns
+        weaknesses = pd.DataFrame({'weakness_id': range(len(unique_weaknesses)),
+                                   'weakness': unique_weaknesses})
+
+        df_weaknesses_joined = pd.merge(df_weaknesses, weaknesses, left_on='weaknesses', right_on='weakness',
+                                        how='left')
+        weaknesses_junction = df_weaknesses_joined[['json_key', 'weakness_id']]
+
+        return weaknesses, weaknesses_junction
+    except Exception as e:
+        print(f"Error in generating weaknesses data: {str(e)}")
+        return None, None
+
+
+if __name__ == '__main__':
+
+    df = pull_json_from_s3('data-eng-210-final-project', "Talent")
+    print(df.head())
+    with open('output/df_json.csv', 'w') as file:
+        df.to_csv(file)
+
+    strengths, strengths_junction = generate_strengths(df)
+    print(strengths.head())
+    with open('output/strengths.csv', 'w') as file:
+        strengths.to_csv(file)
+    print(strengths_junction.head())
+    with open('output/strengths_junction.csv', 'w') as file:
+        strengths_junction.to_csv(file)
+
+    weaknesses, weaknesses_junction = generate_weaknesses(df)
+    print(weaknesses.head())
+    with open('output/weaknesses.csv', 'w') as file:
+        weaknesses.to_csv(file)
+    print(weaknesses_junction.head())
+    with open('output/weaknesses_junction.csv', 'w') as file:
+        weaknesses_junction.to_csv(file)
+
+
+
+
