@@ -63,9 +63,13 @@ def getData(keys: list) -> pd.DataFrame:
     df_course = df[['course_name','course_num','date']].drop_duplicates().reset_index(drop=True).reset_index(names=['course_id'])
     df = pd.merge(df,df_course).drop(columns=['course_name','course_num'])
 
+    df_trainer = df[['trainer']].drop_duplicates().reset_index(drop=True).reset_index(names=['trainer_id'])
+    df.trainer = df.trainer.map(dict(zip(df_trainer.trainer.to_list(), df_trainer.trainer_id.to_list())))
+
     df_stream = df_course[['course_name']].drop_duplicates().reset_index(drop=True).reset_index(names=['stream_id'])
     df_course.course_name = df_course.course_name.map(dict(zip(df_stream.course_name.to_list(),df_stream.stream_id.to_list())))
 
+    df = df.rename(columns={'trainer':'trainer_id'})
     df_course = df_course.rename(columns={'course_name':'stream_id'})
     df_stream = df_stream.rename(columns={'course_name':'stream'})
 
@@ -84,7 +88,7 @@ def getData(keys: list) -> pd.DataFrame:
     # df_behaviour = df_behaviour_score[['behaviour']].drop_duplicates().reset_index(drop=True).reset_index(names=['behaviour_id'])
     # df_behaviour_score.behaviour = df_behaviour_score.behaviour.map(dict(zip(df_behaviour.behaviour.to_list(),df_behaviour.behaviour_id.to_list())))
 
-    return df[['spartan_id','course_id']], df_course, df_stream, df_behaviour_score #, df_behaviour
+    return df[['spartan_id','course_id','trainer_id']], df_course, df_stream, df_trainer, df_behaviour_score #, df_behaviour
 
 # Save results to a file
 def getAllDataAsCSV():
