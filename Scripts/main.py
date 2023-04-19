@@ -130,8 +130,7 @@ with engine.connect() as conn:
                                 Column('financial_support_self', Boolean),
                                 Column('pass', Boolean),
                                 Column('stream_id', Integer,ForeignKey('Stream.stream_id')),
-                                Column('geo_flex', Boolean),
-                                Column('sparta_day_result_id', Integer, ForeignKey('Sparta_Day_Result.sparta_day_result_id'))
+                                Column('geo_flex', Boolean)
                                 )
     table_name = 'Strength'
     strength_table = Table(table_name, metadata,
