@@ -16,7 +16,7 @@ load_dotenv()  # Load environment variables from .env file
 connect_string = create_connection_string()
 # %%
 print('Creating Engine...')
-engine = create_engine("mssql+pyodbc://admin:spartaglobal@project-testing.cjxe5m4vhofo.eu-west-2.rds.amazonaws.com:1433/project?driver=ODBC+Driver+17+for+SQL+Server")
+engine = create_engine(connect_string)
 #engine = create_engine(connect_string)
 print('\rDone!')
 

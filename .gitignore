@@ -8,3 +8,4 @@ Test_Data
 .DS_Store
 .python-version
 .vs
+Scripts/config_file.ini
