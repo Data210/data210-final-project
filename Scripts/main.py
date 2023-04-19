@@ -16,8 +16,8 @@ load_dotenv()  # Load environment variables from .env file
 connect_string = create_connection_string()
 # %%
 print('Creating Engine...')
-# engine = create_engine("")
-engine = create_engine(connect_string)
+engine = create_engine("mssql+pyodbc://admin:spartaglobal@project-testing.cjxe5m4vhofo.eu-west-2.rds.amazonaws.com:1433/project?driver=ODBC+Driver+17+for+SQL+Server")
+#engine = create_engine(connect_string)
 print('\rDone!')
 
 # %%
@@ -130,7 +130,8 @@ with engine.connect() as conn:
                                 Column('financial_support_self', Boolean),
                                 Column('pass', Boolean),
                                 Column('stream_id', Integer,ForeignKey('Stream.stream_id')),
-                                Column('geo_flex', Boolean)
+                                Column('geo_flex', Boolean),
+                                Column('sparta_day_result_id', Integer, ForeignKey('Sparta_Day_Result.sparta_day_result_id'))
                                 )
     table_name = 'Strength'
     strength_table = Table(table_name, metadata,
@@ -207,6 +208,13 @@ import talent_transformation as Talent
 import applicant_transformation as Applicants
 import sparta_day_transformation as SpartaDay
 import academy_transformation as Academy
+
+# %%
+import importlib
+importlib.reload(Talent)
+importlib.reload(Applicants)
+importlib.reload(SpartaDay)
+importlib.reload(Academy)
 
 # %% [markdown]
 # Load in all the data
@@ -518,3 +526,5 @@ with engine.connect() as conn:
 
 # %%
 print('Data insertion complete!')
+
+
