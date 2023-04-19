@@ -43,11 +43,10 @@ def getData(keys: list) -> pd.DataFrame:
     # Create empty df and loop through all files, parsing and concatenating to main df
     # Set column names
     df = pd.DataFrame()
-    for key in keys:
-        text = client.getCSV(bucket_name, key)
-        df = pd.concat(
-            [df, pd.DataFrame(parseFile(text))])
-
+    csvs,pool_keys = client.getObjectsPooled(keys, bucket_name, 'csv')
+    for key, file_csv in zip(pool_keys, csvs):
+        #text = client.getCSV(bucket_name, key)
+        df = pd.concat([df, pd.DataFrame(parseFile(file_csv))])
     return df
 
 

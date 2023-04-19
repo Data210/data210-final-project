@@ -40,10 +40,11 @@ def getData(keys: list) -> pd.DataFrame:
     # Create empty df and loop through all files, parsing and concatenating to main df
     # Set column names
     sparta_day_result_df = pd.DataFrame()
-    for key in keys:
-        text = client.getCSV(bucket_name, key)
+    txts,pool_keys = client.getObjectsPooled(keys, bucket_name, 'txt')
+    for key, file_txt in zip(pool_keys, txts):
+        #text = client.getCSV(bucket_name, key)
         sparta_day_result_df = pd.concat(
-            [sparta_day_result_df, pd.DataFrame(parseTextFile(text))])
+            [sparta_day_result_df, pd.DataFrame(parseTextFile(file_txt))])
     # Set column names
     sparta_day_result_df.columns = ["name", "psychometric_result", "presentation_result", "date", "academy"]
 

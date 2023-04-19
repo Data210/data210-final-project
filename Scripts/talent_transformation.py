@@ -40,8 +40,12 @@ def getData(keys: list) -> pd.DataFrame:
     df_tech_junction = pd.DataFrame()
     df_strength_junction = pd.DataFrame()
     df_weakness_junction = pd.DataFrame()
-    for key in keys:
-        json_object = client.getJSON(bucket_name,key)
+
+    jsons, pool_keys = client.getObjectsPooled(keys, bucket_name, 'json')
+    for key, json in zip(pool_keys, jsons):
+        # file_df = client.getDataFrame(bucket_name,key) temp_df = parseFile(csv)
+        #json_object = client.getJSON(bucket_name,key)
+        json_object = json
         temp_df, temp_df_strength, temp_df_weakness, temp_df_tech_score = parseFile(json_object)
         #Get unique ID from file name
         key_id = key.split('Talent/')[1].split('.json')[0]

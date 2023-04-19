@@ -1,6 +1,7 @@
 from s3 import S3Client
 import pandas as pd
 from datetime import datetime, timezone
+import io
 
 # Config
 bucket_name = "data-eng-210-final-project"
@@ -38,9 +39,11 @@ def getData(keys: list) -> pd.DataFrame:
     # Create empty df and loop through all files, parsing and concatenating to main df
     df = pd.DataFrame()
 
-    for key in keys:
-        file_df = client.getDataFrame(bucket_name,key)
-        temp_df = parseFile(file_df)
+    csvs,pool_keys = client.getObjectsPooled(keys, bucket_name, 'csv')
+    for key, file_csv in zip(pool_keys, csvs):
+        #file_csv = client.getDataFrame(bucket_name,key)
+        #temp_df = parseFile(file_csv)
+        temp_df = pd.read_csv(io.StringIO(file_csv))
         #Get unique ID from file name
         key = key.split('/')[-1]
         key = key.rsplit('.',1)[0]

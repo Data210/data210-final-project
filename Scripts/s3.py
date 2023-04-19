@@ -2,6 +2,8 @@ import boto3
 import pandas as pd
 import io
 import json
+from typing import Literal
+import concurrent
 
 
 class S3Client:
@@ -37,3 +39,20 @@ class S3Client:
         return json.loads(object['Body'].read())
     def getAllObjects(self,bucket_name):
         return self.resource.Bucket(bucket_name).objects
+    def getObjectsPooled(self, keys: list, bucket_name, file_type: Literal['json','csv','txt','df'], max_workers: int = 60) -> list:
+        objects = []
+        out_keys = []
+        if file_type == 'json':
+            reader = self.getJSON
+        elif file_type in ['csv', 'txt']:
+            reader = self.getCSV
+        elif file_type == 'df':
+            reader = self.getDataFrame
+        with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
+            future_to_url = {executor.submit(reader, bucket_name, key): key for key in keys}
+        for future in concurrent.futures.as_completed(future_to_url):
+            key = future_to_url[future]
+            data = future.result()
+            objects.append(data)
+            out_keys.append(key)
+        return objects, out_keys
