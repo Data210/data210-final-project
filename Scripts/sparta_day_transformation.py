@@ -79,7 +79,7 @@ def getData(keys: list) -> pd.DataFrame:
 
     # Drop any local duplicates, defer index creating after database cross check
     sparta_day_df = sparta_day_result_df[['sparta_day_date','academy']].drop_duplicates()
-    sparta_day_result_df = sparta_day_result_df[['name','psychometric_result','presentation_result','sparta_day_date']]
+    sparta_day_result_df = sparta_day_result_df[['name','psychometric_result','presentation_result','sparta_day_date','academy']]
     # Check for duplicates against current Academy_Location table
     # academy_df becomes the diff, pd.concat() current + new for mapping
     academy_df = sparta_day_df[['academy']].drop_duplicates() #
@@ -96,20 +96,26 @@ def getData(keys: list) -> pd.DataFrame:
     sparta_day_df = sparta_day_df.reset_index(names=['sparta_day_id'])
     sparta_day_df['sparta_day_id'] = sparta_day_df.index + current_sparta_day_df['sparta_day_id'].max() + 1
     # Map sparta_day_id back, needs to happen before duplicate check as it is identifying information
-    sparta_day_result_df['sparta_day_id'] = sparta_day_result_df.sparta_day_date\
-        .map(dict(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id']],
-                             current_sparta_day_df[['sparta_day_date','sparta_day_id']]]).values.tolist()))
+    sparta_day_result_df = pd.merge(sparta_day_result_df,
+                                    pd.merge(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
+                                                        current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
+                                                        pd.concat([current_academy_df[['academy','academy_id']],academy_df]))
+    ).drop(['academy_id'],axis=1)
+    # sparta_day_result_df['sparta_day_id'] = sparta_day_result_df.sparta_day_date\
+    #     .map(dict(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id']],
+    #                          current_sparta_day_df[['sparta_day_date','sparta_day_id']]]).values.tolist()))
+
     # Duplicate check
     sparta_day_result_df = sparta_day_result_df\
         .merge(current_sparta_day_result_df.drop('sparta_day_result_id',axis=1), how="left", indicator=True)\
-        .query("_merge == 'left_only'").drop('_merge',axis=1).reset_index(drop=True)
+        .query("_merge == 'left_only'").drop(['_merge'],axis=1).reset_index(drop=True)
 
     sparta_day_result_df = sparta_day_result_df.reset_index(drop=True).reset_index(names=['sparta_day_result_id'])
     sparta_day_result_df['sparta_day_result_id'] = sparta_day_result_df.index + current_sparta_day_result_df['sparta_day_result_id'].max() + 1
 
-    display(academy_df)
-    display(sparta_day_df)
-    display(sparta_day_result_df)
+    # display(academy_df)
+    # display(sparta_day_df)
+    # display(sparta_day_result_df)
     
 
     return sparta_day_result_df, sparta_day_df, academy_df
