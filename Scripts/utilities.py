@@ -17,5 +17,5 @@ def checkNewRecords(new_df,current_df,id_column):
         new_df = new_df.merge(merge_df, how="left", indicator=True)\
             .query("_merge == 'left_only'").drop('_merge',axis=1).reset_index(drop=True)
     if id_column:
-        new_df[id_column] = pd.RangeIndex(len(new_df)) + current_df[id_column].max() + 1
+        new_df[id_column] = pd.RangeIndex(len(new_df)) + (current_df['applicant_id'].max() if not pd.isna(float(current_df['applicant_id'].max())) else -1) + 1
     return new_df
