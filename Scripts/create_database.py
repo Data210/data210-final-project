@@ -1,5 +1,5 @@
 import sqlalchemy as db
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Date, ForeignKey, Boolean, PrimaryKeyConstraint
+from sqlalchemy import create_engine, Table, Column, Integer, INTEGER, String, MetaData, Date, ForeignKey, Boolean, PrimaryKeyConstraint
 from sqlalchemy import text
 from sqlalchemy_utils import database_exists, create_database
 from dotenv import load_dotenv
@@ -115,7 +115,7 @@ def create_database():
         
         table_name = 'Stream'
         Stream_table = Table (table_name, metadata,
-                            Column('stream_id', Integer, primary_key=True, autoincrement=True),
+                            Column('stream_id', INTEGER, primary_key=True, autoincrement=True),
                             Column('stream', String)
                             )
         table_name = 'Talent'
@@ -125,7 +125,7 @@ def create_database():
                                     Column('self_development', Boolean),
                                     Column('financial_support_self', Boolean),
                                     Column('pass', Boolean),
-                                    Column('stream_id', Integer,ForeignKey('Stream.stream_id')),
+                                    Column('stream_id', INTEGER,ForeignKey('Stream.stream_id')),
                                     Column('geo_flex', Boolean)
                                     )
         table_name = 'Strength'

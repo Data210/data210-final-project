@@ -121,6 +121,8 @@ def getData(keys: list) -> pd.DataFrame:
     # df = df.rename(columns={'trainer':'trainer_id'})
     df_stream = df_stream.rename(columns={'course_name':'stream'})
     df_course = df_course.drop('course_name',axis=1)
+    df_stream['stream_id'] = df_stream[['stream_id']].astype('int64')
+    df_course['stream_id'] = df_course[['stream_id']].astype('int64')
 
     df_behaviour_score = df[['spartan_id'] + behaviour_cols].melt(id_vars=['spartan_id'], value_vars=behaviour_cols, var_name='trait_week',value_name='score')
     df_behaviour_score = df_behaviour_score.dropna(how='any')
