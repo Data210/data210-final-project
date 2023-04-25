@@ -104,9 +104,9 @@ def getData(keys: list) -> pd.DataFrame:
     df_tech = checkNewRecords(df_tech,current_tech_df,'tech_id')
 
     #Map back
-    df_strength_junction = splitAndRemap(df_strength_junction,[current_strength_df,df_strength],'strength_id','strength')
-    df_weakness_junction = splitAndRemap(df_weakness_junction,[current_weakness_df,df_weakness],'weakness_id','weakness')
-    df_tech_junction = splitAndRemap(df_tech_junction,[current_tech_df,df_tech],'tech_id','tech_name')
+    df_strength_junction = splitAndRemap(df_strength_junction,pd.concat([current_strength_df,df_strength]),'strength')
+    df_weakness_junction = splitAndRemap(df_weakness_junction,pd.concat([current_weakness_df,df_weakness]),'weakness')
+    df_tech_junction = splitAndRemap(df_tech_junction,pd.concat([current_tech_df,df_tech]),'tech_name')
     
     # Check records dont exist in DB yet
     df_strength_junction = checkNewRecords(df_strength_junction,current_strength_junction_df,None)

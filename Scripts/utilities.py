@@ -1,6 +1,9 @@
 import pandas as pd
-def splitAndRemap(target_df,map_df):
-    return pd.merge(target_df,map_df)
+def splitAndRemap(target_df,map_df,drop = None):
+    new_df = pd.merge(target_df,map_df)
+    if drop:
+        new_df = new_df.drop(drop,axis=1)
+    return new_df
     # if (type(match_columns) == list) & (len(match_columns) > 1):
     #     mapping = dict(pd.concat(map_dfs)[[match_columns,key_column]].values.tolist())
     #     target_df[match_columns] = target_df[match_columns].map(mapping)

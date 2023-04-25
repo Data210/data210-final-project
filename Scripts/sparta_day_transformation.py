@@ -87,22 +87,23 @@ def getData(keys: list) -> pd.DataFrame:
     academy_df = sparta_day_df[['academy']].drop_duplicates()
     academy_df = checkNewRecords(academy_df,current_academy_df,'academy_id')
 
-    sparta_day_df = splitAndRemap(sparta_day_df,pd.concat([current_academy_df[['academy','academy_id']],academy_df]))
+    sparta_day_df = splitAndRemap(sparta_day_df,pd.concat([current_academy_df[['academy','academy_id']],academy_df]),'academy')
     sparta_day_df = checkNewRecords(sparta_day_df,current_sparta_day_df,'sparta_day_id')
 
     # Map sparta_day_id back, needs to happen before duplicate check as it is identifying information
-    # sparta_day_result_df = splitAndRemap(sparta_day_result_df,
-    #                                        pd.merge(
-    #                                             pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
-    #                                             current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
-    #                                             pd.concat([current_academy_df[['academy','academy_id']],academy_df])
-    #                                         )
-    #                                     ).drop(['academy_id'],axis=1)
-    sparta_day_result_df = pd.merge(sparta_day_result_df,
-                                    pd.merge(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
-                                                        current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
-                                                        pd.concat([current_academy_df[['academy','academy_id']],academy_df]))
-    ).drop(['academy_id'],axis=1)
+    sparta_day_result_df = splitAndRemap(sparta_day_result_df,
+                                           pd.merge(
+                                                pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
+                                                current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
+                                                pd.concat([current_academy_df[['academy','academy_id']],academy_df])
+                                            ),
+                                            ['academy_id','academy']
+                                        )
+    # sparta_day_result_df = pd.merge(sparta_day_result_df,
+    #                                 pd.merge(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
+    #                                                     current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
+    #                                                     pd.concat([current_academy_df[['academy','academy_id']],academy_df]))
+    # ).drop(['academy_id'],axis=1)
 
     # Duplicate check
     sparta_day_result_df = checkNewRecords(sparta_day_result_df,current_sparta_day_result_df,'sparta_day_result_id')
