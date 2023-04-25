@@ -3,12 +3,14 @@ import pandas as pd
 import re
 import string
 from datetime import datetime, timezone
-
+import importlib
 from utilities import checkNewRecords, splitAndRemap
 
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from connection_string import create_connection_string
+
+
 
 load_dotenv()  # Load environment variables from .env file
 connect_string = create_connection_string()
@@ -85,18 +87,16 @@ def getData(keys: list) -> pd.DataFrame:
     academy_df = sparta_day_df[['academy']].drop_duplicates()
     academy_df = checkNewRecords(academy_df,current_academy_df,'academy_id')
 
-    sparta_day_df = splitAndRemap(sparta_day_df,[current_academy_df[['academy','academy_id']],academy_df],'academy_id','academy')
+    sparta_day_df = splitAndRemap(sparta_day_df,pd.concat([current_academy_df[['academy','academy_id']],academy_df]))
     sparta_day_df = checkNewRecords(sparta_day_df,current_sparta_day_df,'sparta_day_id')
 
     # Map sparta_day_id back, needs to happen before duplicate check as it is identifying information
-    # sparta_day_result_df = checkNewRecords(sparta_day_result_df,
+    # sparta_day_result_df = splitAndRemap(sparta_day_result_df,
     #                                        pd.merge(
-    #                                             # New and current Sparta Day
     #                                             pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
     #                                             current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
-    #                                             # New and current Academy Location
     #                                             pd.concat([current_academy_df[['academy','academy_id']],academy_df])
-    #                                         ),None
+    #                                         )
     #                                     ).drop(['academy_id'],axis=1)
     sparta_day_result_df = pd.merge(sparta_day_result_df,
                                     pd.merge(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
