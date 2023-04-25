@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from connection_string import create_connection_string
 
+from utilities import checkNewRecords, splitAndRemap
 load_dotenv()  # Load environment variables from .env file
 connect_string = create_connection_string()
 engine = create_engine(connect_string)
@@ -76,6 +77,8 @@ def getData(keys: list) -> pd.DataFrame:
     df['geo_flex'] = df['geo_flex'].map(dict(Yes=True,No=False))
     df['financial_support_self'] = df['financial_support_self'].map(dict(Yes=True,No=False))
     df['result'] = df['result'].map({'Pass': True, 'Fail':False})
+    df_tech_junction = df_tech_junction.rename(columns={'language':'tech_name'})
+    df = df.rename(columns={'result':'pass','course_interest':'stream_id'})
 
     with engine.connect() as conn:
         current_talent_df = pd.read_sql(text("SELECT * FROM Talent"), conn)
@@ -87,17 +90,13 @@ def getData(keys: list) -> pd.DataFrame:
         current_weakness_junction_df = pd.read_sql(text("SELECT * FROM Weakness_Junction"), conn)
         current_tech_junction_df = pd.read_sql(text("SELECT * FROM Tech_Junction"), conn)
 
-
     df_strength_junction.strength = df_strength_junction.strength.replace({'Reliable':'reliable'})
     df_weakness_junction.weakness = df_weakness_junction.weakness.replace({'Introverted':'introverted'})
-    df_tech_junction.language = df_tech_junction.language.replace({'Python':'python'})
-
+    df_tech_junction.tech_name = df_tech_junction.tech_name.replace({'Python':'python'})
 
     df_strength = df_strength_junction.strength.to_frame().drop_duplicates()
     df_weakness = df_weakness_junction.weakness.to_frame().drop_duplicates()
-    df_tech = df_tech_junction.language.to_frame().drop_duplicates()
-
-    df_tech = df_tech.rename(columns={'language':'tech_name'})
+    df_tech = df_tech_junction.tech_name.to_frame().drop_duplicates()
 
     # Check records dont exist in DB yet
     df_strength = checkNewRecords(df_strength,current_strength_df,'strength_id')
@@ -105,46 +104,20 @@ def getData(keys: list) -> pd.DataFrame:
     df_tech = checkNewRecords(df_tech,current_tech_df,'tech_id')
 
     #Map back
-    strength_map = dict(pd.concat([current_strength_df,df_strength])[['strength','strength_id']].values.tolist())
-    df_strength_junction.strength = df_strength_junction.strength.map(strength_map)
-    weakness_map = dict(pd.concat([current_weakness_df ,df_weakness])[['weakness','weakness_id']].values.tolist())
-    df_weakness_junction.weakness = df_weakness_junction.weakness.map(weakness_map)
-    tech_map = dict(pd.concat([current_tech_df,df_tech])[['tech_name','tech_id']].values.tolist())
-    df_tech_junction.language = df_tech_junction.language.map(tech_map)
-
-    # Rename columns to match schema
-    df_strength_junction = df_strength_junction.rename(columns={'strength':'strength_id'})
-    df_weakness_junction = df_weakness_junction.rename(columns={'weakness':'weakness_id'})
-    df_tech_junction = df_tech_junction.rename(columns={'language':'tech_id'})
+    df_strength_junction = splitAndRemap(df_strength_junction,[current_strength_df,df_strength],'strength_id','strength')
+    df_weakness_junction = splitAndRemap(df_weakness_junction,[current_weakness_df,df_weakness],'weakness_id','weakness')
+    df_tech_junction = splitAndRemap(df_tech_junction,[current_tech_df,df_tech],'tech_id','tech_name')
     
     # Check records dont exist in DB yet
     df_strength_junction = checkNewRecords(df_strength_junction,current_strength_junction_df,None)
     df_weakness_junction = checkNewRecords(df_weakness_junction,current_weakness_junction_df,None)
     df_tech_junction = checkNewRecords(df_tech_junction,current_tech_junction_df,None)
 
-    df = df.rename(columns={'result':'pass','course_interest':'stream_id'})
     df = checkNewRecords(df,current_talent_df[['talent_id']],None)
 
+    return df, df_strength_junction, df_weakness_junction, df_tech_junction, df_strength, df_weakness, df_tech
 
-    return df, df_strength_junction, df_weakness_junction, df_tech_junction, df_strength, df_weakness, df_tech,
 
-def checkNewRecords(new_df,current_df,id_column):
-    if id_column:
-        merge_df = current_df.drop(id_column,axis=1)
-    else:
-        merge_df = current_df
-    try:
-        new_df = new_df.merge(merge_df, how="left", indicator=True)\
-            .query("_merge == 'left_only'").drop('_merge',axis=1).reset_index(drop=True)
-    except ValueError:
-        # display(current_df.columns.to_list())
-        # display(dict(zip(current_df.columns.to_list(),current_df.dtypes.to_list())))
-        new_df = new_df.astype(dict(zip(current_df.columns.to_list(),current_df.dtypes.to_list())))
-        new_df = new_df.merge(merge_df, how="left", indicator=True)\
-            .query("_merge == 'left_only'").drop('_merge',axis=1).reset_index(drop=True)
-    if id_column:
-        new_df[id_column] = pd.RangeIndex(len(new_df)) + current_df[id_column].max() + 1
-    return new_df
 
 # Save results to a file
 def getAllDataAsCSV():

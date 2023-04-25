@@ -4,6 +4,8 @@ import re
 import string
 from datetime import datetime, timezone
 
+from utilities import checkNewRecords, splitAndRemap
+
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from connection_string import create_connection_string
@@ -15,7 +17,6 @@ engine = create_engine(connect_string)
 # Config
 bucket_name = "data-eng-210-final-project"
 client = S3Client()
-
 
 def getAllData() -> pd.DataFrame:
     """
@@ -56,10 +57,10 @@ def getData(keys: list) -> pd.DataFrame:
     # Set column names
     sparta_day_result_df.columns = ["name", "psychometric_result", "presentation_result", "sparta_day_date", "academy"]
 
-
     with engine.connect() as conn:
         current_academy_df = pd.read_sql(text("SELECT * FROM Academy_Location"), conn)
         current_sparta_day_df = pd.read_sql(text("SELECT * FROM Sparta_Day"), conn)
+        current_sparta_day_df.sparta_day_date = pd.to_datetime(current_sparta_day_df.sparta_day_date)
         current_sparta_day_result_df = pd.read_sql(
             text("""SELECT sdr.*, pd.name FROM Sparta_Day_Result AS sdr 
             JOIN Applicant AS a
@@ -67,57 +68,45 @@ def getData(keys: list) -> pd.DataFrame:
             JOIN Personal_Details as pd
             ON a.person_id = pd.person_id
             """), conn)
+        
     # Additional cleaning, strip whitespace, enforce data types
-    # sparta_day_result_df.FirstName = sparta_day_result_df.FirstName.str.strip(" ")
-    # sparta_day_result_df.LastName = sparta_day_result_df.LastName.str.strip(" ")
     sparta_day_result_df.name = sparta_day_result_df.name.str.strip(" ")
     sparta_day_result_df.psychometric_result = sparta_day_result_df.psychometric_result.astype(int)
     sparta_day_result_df.presentation_result = sparta_day_result_df.presentation_result.astype(int)
     sparta_day_result_df.sparta_day_date = pd.to_datetime(sparta_day_result_df.sparta_day_date)
     sparta_day_result_df.academy = sparta_day_result_df.academy.replace({'London':'Leeds'})
 
-
     # Drop any local duplicates, defer index creating after database cross check
-    sparta_day_df = sparta_day_result_df[['sparta_day_date','academy']].drop_duplicates()
     sparta_day_result_df = sparta_day_result_df[['name','psychometric_result','presentation_result','sparta_day_date','academy']]
+    sparta_day_df = sparta_day_result_df[['sparta_day_date','academy']].drop_duplicates()
+
     # Check for duplicates against current Academy_Location table
     # academy_df becomes the diff, pd.concat() current + new for mapping
-    academy_df = sparta_day_df[['academy']].drop_duplicates() #
-    academy_df = academy_df[~academy_df.academy.isin(current_academy_df.academy)].reset_index(drop=True).reset_index(names=['academy_id'])
-    academy_df['academy_id'] = academy_df['academy_id'] + current_academy_df.index.max() + 1
-    academy_map = dict(pd.concat([current_academy_df[['academy','academy_id']],academy_df]).values.tolist())
-    sparta_day_df.academy = sparta_day_df.academy.map(academy_map)
-    # Now that academy_id is mapped, cross-check sparta_day
-    sparta_day_df = sparta_day_df.rename(columns={'academy':'academy_id'})
-    current_sparta_day_df.sparta_day_date = pd.to_datetime(current_sparta_day_df.sparta_day_date)
-    # Duplicate check
-    sparta_day_df = sparta_day_df.merge(current_sparta_day_df.drop('sparta_day_id',axis=1), how="left", indicator=True)\
-        .query("_merge == 'left_only'").drop('_merge',axis=1).reset_index(drop=True)
-    sparta_day_df = sparta_day_df.reset_index(names=['sparta_day_id'])
-    sparta_day_df['sparta_day_id'] = sparta_day_df.index + current_sparta_day_df['sparta_day_id'].max() + 1
+    academy_df = sparta_day_df[['academy']].drop_duplicates()
+    academy_df = checkNewRecords(academy_df,current_academy_df,'academy_id')
+
+    sparta_day_df = splitAndRemap(sparta_day_df,[current_academy_df[['academy','academy_id']],academy_df],'academy_id','academy')
+    sparta_day_df = checkNewRecords(sparta_day_df,current_sparta_day_df,'sparta_day_id')
+
     # Map sparta_day_id back, needs to happen before duplicate check as it is identifying information
+    # sparta_day_result_df = checkNewRecords(sparta_day_result_df,
+    #                                        pd.merge(
+    #                                             # New and current Sparta Day
+    #                                             pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
+    #                                             current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
+    #                                             # New and current Academy Location
+    #                                             pd.concat([current_academy_df[['academy','academy_id']],academy_df])
+    #                                         ),None
+    #                                     ).drop(['academy_id'],axis=1)
     sparta_day_result_df = pd.merge(sparta_day_result_df,
                                     pd.merge(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']],
                                                         current_sparta_day_df[['sparta_day_date','sparta_day_id','academy_id']]]),
                                                         pd.concat([current_academy_df[['academy','academy_id']],academy_df]))
     ).drop(['academy_id'],axis=1)
-    # sparta_day_result_df['sparta_day_id'] = sparta_day_result_df.sparta_day_date\
-    #     .map(dict(pd.concat([sparta_day_df[['sparta_day_date','sparta_day_id']],
-    #                          current_sparta_day_df[['sparta_day_date','sparta_day_id']]]).values.tolist()))
 
     # Duplicate check
-    sparta_day_result_df = sparta_day_result_df\
-        .merge(current_sparta_day_result_df.drop('sparta_day_result_id',axis=1), how="left", indicator=True)\
-        .query("_merge == 'left_only'").drop(['_merge'],axis=1).reset_index(drop=True)
-
-    sparta_day_result_df = sparta_day_result_df.reset_index(drop=True).reset_index(names=['sparta_day_result_id'])
-    sparta_day_result_df['sparta_day_result_id'] = sparta_day_result_df.index + current_sparta_day_result_df['sparta_day_result_id'].max() + 1
-
-    # display(academy_df)
-    # display(sparta_day_df)
-    # display(sparta_day_result_df)
+    sparta_day_result_df = checkNewRecords(sparta_day_result_df,current_sparta_day_result_df,'sparta_day_result_id')
     
-
     return sparta_day_result_df, sparta_day_df, academy_df
 
 # Save results to a file
