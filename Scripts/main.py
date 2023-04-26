@@ -13,7 +13,8 @@ import sqlalchemy as db
 import sys
 
 print(sys.argv)
-try:   
+
+try:
     filepath = sys.argv[1]
 except:
     filepath = ''
@@ -26,8 +27,6 @@ import talent_transformation as Talent
 import applicant_transformation as Applicants
 import sparta_day_transformation as SpartaDay
 import academy_transformation as Academy
-
-
 # %%
 df_sparta_day_result, df_sparta_day, df_academy = SpartaDay.getAllData(filepath)
 
@@ -68,7 +67,7 @@ with engine.connect() as conn:
         JOIN Personal_Details as pd
         ON a.person_id = pd.person_id
         WHERE a.invited_date IS NOT NULL
-        AND a.applicant_id NOT IN (SELECT applicant_id FROM Talent)
+        AND a.applicant_id NOT IN (SELECT t.applicant_id FROM Talent.dbo.Talent as t WHERE t.applicant_id IS NOT NULL)
         """), conn)
     
 df_talent.date = pd.to_datetime(df_talent.date)
@@ -84,7 +83,7 @@ df_talent_insert = pd.merge_asof(
     by='name',
     direction='forward').drop(['name', 'invited_date', 'date'], axis=1)
 
-df_talent_insert.stream_id = df_talent_insert.stream_id.map(dict(zip(df_stream.stream.to_list(),df_stream.stream_id.to_list())))
+df_talent_insert.stream_id = df_talent_insert.stream_id.map(dict(pd.concat([df_stream,current_stream_df])[['stream','stream_id']].values.tolist()))
 
 # %%
 with engine.connect() as conn:
@@ -208,7 +207,6 @@ with engine.connect() as conn:
     for index, row in df_applicant_with_sparta_day.dropna(subset='sparta_day_result_id').iterrows():
         result = conn.execute(text(f"UPDATE Applicant SET sparta_day_result_id = {row['sparta_day_result_id']} WHERE applicant_id = {row['applicant_id']}"))
     conn.commit()
-
 # Insert Applicant table - DEPENDS ON Recruiters AND Personal_Details AND Sparta_Day_Result
     print('Inserting Applicant (11/23)...')
     conn.execute(text("SET IDENTITY_INSERT Applicant ON"))
