@@ -198,14 +198,15 @@ with engine.connect() as conn:
                                     WHERE ap.invited_date IS NOT NULL AND
                                     ap.sparta_day_result_id IS NULL"""), conn)
     current_df.invited_date = pd.to_datetime(current_df.invited_date)
+    df_sparta_day_result.sparta_day_date = pd.to_datetime(df_sparta_day_result.sparta_day_date)
     df_applicant_with_sparta_day = pd.merge(current_df[['applicant_id','name','invited_date']], df_sparta_day_result[['sparta_day_result_id','name','sparta_day_date']],
                                         left_on=['name','invited_date'],
                                         right_on=['name','sparta_day_date'],
                                         how='left')\
                                         .drop(['name','sparta_day_date','invited_date'],axis=1)
     
-    for index, row in df_applicant_with_sparta_day.iterrows():
-        result = conn.execute(text(f"UPDATE Applicant SET sparta_day_id = {row['sparta_day_result_id']} WHERE applicant_id = {row['applicant_id']}"))
+    for index, row in df_applicant_with_sparta_day.dropna(subset='sparta_day_result_id').iterrows():
+        result = conn.execute(text(f"UPDATE Applicant SET sparta_day_result_id = {row['sparta_day_result_id']} WHERE applicant_id = {row['applicant_id']}"))
     conn.commit()
 
 # Insert Applicant table - DEPENDS ON Recruiters AND Personal_Details AND Sparta_Day_Result
