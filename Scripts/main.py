@@ -10,26 +10,31 @@ from create_database import create_database
 from sqlalchemy import text, Table, create_engine
 import utilities
 import sqlalchemy as db
+import sys
+
+filepath = sys.argv[1]
 
 # %%
 engine = create_database()
+
 # %%
 import talent_transformation as Talent
 import applicant_transformation as Applicants
 import sparta_day_transformation as SpartaDay
 import academy_transformation as Academy
 
-# %%
-df_sparta_day_result, df_sparta_day, df_academy = SpartaDay.getAllData()
 
 # %%
-df_spartan, df_course, df_stream, df_trainer, df_behaviour = Academy.getAllData()
+df_sparta_day_result, df_sparta_day, df_academy = SpartaDay.getAllData(filepath)
 
 # %%
-df_talent, df_strength_junction, df_weakness_junction, df_tech_junction,  df_strength, df_weakness, df_tech = Talent.getAllData()
+df_spartan, df_course, df_stream, df_trainer, df_behaviour = Academy.getAllData(filepath)
 
 # %%
-df_applicant, df_personal_details, df_uni, df_degree, df_address ,df_postcode, df_city,  df_recruiter = Applicants.process_locations(engine)
+df_talent, df_strength_junction, df_weakness_junction, df_tech_junction,  df_strength, df_weakness, df_tech = Talent.getAllData(filepath)
+
+# %%
+df_applicant, df_personal_details, df_uni, df_degree, df_address ,df_postcode, df_city,  df_recruiter = Applicants.process_locations(engine,filepath)
 
 # %%
 with engine.connect() as conn:
@@ -65,6 +70,8 @@ with engine.connect() as conn:
         WHERE a.invited_date IS NOT NULL
         AND a.applicant_id NOT IN (SELECT applicant_id FROM Talent)
         """), conn)
+
+current_applicant_with_names_df.invited_date = pd.to_datetime(current_applicant_with_names_df.invited_date)
 
 df_talent_insert = pd.merge_asof(
     df_talent.sort_values('date'),
