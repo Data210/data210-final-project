@@ -12,7 +12,11 @@ import utilities
 import sqlalchemy as db
 import sys
 
-filepath = sys.argv[1]
+print(sys.argv)
+try:   
+    filepath = sys.argv[1]
+except:
+    filepath = ''
 
 # %%
 engine = create_database()
@@ -37,22 +41,18 @@ df_talent, df_strength_junction, df_weakness_junction, df_tech_junction,  df_str
 df_applicant, df_personal_details, df_uni, df_degree, df_address ,df_postcode, df_city,  df_recruiter = Applicants.process_locations(engine,filepath)
 
 # %%
+#Add new streams if only inserting Talent with new streams
+from utilities import checkNewRecords
 with engine.connect() as conn:
-    current_df = pd.read_sql(text("""SELECT ap.applicant_id, pd.name, ap.invited_date, ap.sparta_day_result_id FROM Applicant as ap
-                                    JOIN Personal_Details as pd on ap.person_id = pd.person_id
-                                    WHERE ap.invited_date IS NOT NULL AND
-                                    ap.sparta_day_result_id IS NULL"""), conn)
-    
-    df_applicant_with_sparta_day = pd.merge(current_df[['applicant_id','name','invited_date']], df_sparta_day_result[['sparta_day_result_id','name','sparta_day_date']],
-                                        left_on=['name','invited_date'],
-                                        right_on=['name','sparta_day_date'],
-                                        how='left')\
-                                        .drop(['name','sparta_day_date','invited_date'],axis=1)
-    
-    for index, row in df_applicant_with_sparta_day.iterrows():
-        result = conn.execute(f"UPDATE Applicant SET sparta_day_id = {row['sparta_day_result_id']} WHERE applicant_id = {row['applicant_id']}")
-        conn.commit()
+    current_stream_df = pd.read_sql(text(
+        """
+        SELECT * FROM Stream
+        """), conn)
+df_stream_from_talent = df_talent[['stream_id']].drop_duplicates().rename(columns={'stream_id':'stream'})
+df_stream_from_talent = checkNewRecords(df_stream_from_talent, pd.concat([df_stream,current_stream_df]),'stream_id')
+df_stream = pd.concat([df_stream,df_stream_from_talent])
 
+# %%
 df_applicant_with_names = pd.merge(df_applicant, df_personal_details[['person_id','name']])
 df_applicant_insert = pd.merge(df_applicant_with_names,df_sparta_day_result[['sparta_day_result_id','name','sparta_day_date']],
                                left_on=['name','invited_date'],
@@ -70,7 +70,9 @@ with engine.connect() as conn:
         WHERE a.invited_date IS NOT NULL
         AND a.applicant_id NOT IN (SELECT applicant_id FROM Talent)
         """), conn)
-
+    
+df_talent.date = pd.to_datetime(df_talent.date)
+df_applicant_with_names.invited_date = pd.to_datetime(df_applicant_with_names.invited_date)
 current_applicant_with_names_df.invited_date = pd.to_datetime(current_applicant_with_names_df.invited_date)
 
 df_talent_insert = pd.merge_asof(
@@ -99,9 +101,13 @@ with engine.connect() as conn:
 
 current_talent_df['stream_id'] = current_talent_df[['stream_id']].astype('int64')
 current_talent_df['date'] = pd.to_datetime(current_talent_df['date'])
+df_course.start_date = pd.to_datetime(df_course.start_date)
+df_course.stream_id = df_course.stream_id.astype('int64')
+df_stream.stream_id = df_stream.stream_id.astype('int64')
 
 df_talent_temp = df_talent.copy()
-df_talent_temp.stream_id = df_talent_temp.stream_id.map(dict(zip(df_stream.stream.to_list(),df_stream.stream_id.to_list())))
+df_talent_temp.stream_id = df_talent_temp.stream_id.map(dict(pd.concat([df_stream,current_stream_df])[['stream','stream_id']].values.tolist()))
+df_talent_temp.stream_id = df_talent_temp.stream_id.astype('int64')
 
 df_spartan_insert = pd.merge_asof(
     pd.merge(df_spartan,df_course[['stream_id','course_id','start_date']]).sort_values('start_date'),
@@ -185,6 +191,21 @@ with engine.connect() as conn:
     result = df_sparta_day_result.drop(['name','sparta_day_date'],axis=1)\
         .to_sql('Sparta_Day_Result',conn,if_exists='append',index=False)
     conn.execute(text("SET IDENTITY_INSERT Sparta_Day_Result OFF"))
+    conn.commit()
+# Update Applicant
+    current_df = pd.read_sql(text("""SELECT ap.applicant_id, pd.name, ap.invited_date, ap.sparta_day_result_id FROM Applicant as ap
+                                    JOIN Personal_Details as pd on ap.person_id = pd.person_id
+                                    WHERE ap.invited_date IS NOT NULL AND
+                                    ap.sparta_day_result_id IS NULL"""), conn)
+    current_df.invited_date = pd.to_datetime(current_df.invited_date)
+    df_applicant_with_sparta_day = pd.merge(current_df[['applicant_id','name','invited_date']], df_sparta_day_result[['sparta_day_result_id','name','sparta_day_date']],
+                                        left_on=['name','invited_date'],
+                                        right_on=['name','sparta_day_date'],
+                                        how='left')\
+                                        .drop(['name','sparta_day_date','invited_date'],axis=1)
+    
+    for index, row in df_applicant_with_sparta_day.iterrows():
+        result = conn.execute(text(f"UPDATE Applicant SET sparta_day_id = {row['sparta_day_result_id']} WHERE applicant_id = {row['applicant_id']}"))
     conn.commit()
 
 # Insert Applicant table - DEPENDS ON Recruiters AND Personal_Details AND Sparta_Day_Result

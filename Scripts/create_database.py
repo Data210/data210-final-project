@@ -25,8 +25,8 @@ def create_database():
         create_database(engine.url)
     # drop all tables
     metadata = db.MetaData()
-    metadata.reflect(bind=engine)
-    metadata.drop_all(bind=engine)
+    #metadata.reflect(bind=engine)
+    #metadata.drop_all(bind=engine)
     print('Creating Schema...')
     with engine.connect() as conn:
         metadata = MetaData()
