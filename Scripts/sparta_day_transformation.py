@@ -20,13 +20,15 @@ engine = create_engine(connect_string)
 bucket_name = "data-eng-210-final-project"
 client = S3Client()
 
-def getAllData() -> pd.DataFrame:
+def getAllData(folder_path ="") -> pd.DataFrame:
     """
     Returns a DataFrame with ALL the Sparta Day records in the bucket
     """
+    if len(folder_path) > 0:
+        folder_path = folder_path + '/'
     sparta_day_file_keys = []
     # Find all files with .txt extension in bucket
-    for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
+    for item in client.getAllObjects(bucket_name).filter(Prefix=folder_path + 'Talent'):
         if item.key.endswith('.txt'):
             sparta_day_file_keys.append(item.key)
     return getData(sparta_day_file_keys)

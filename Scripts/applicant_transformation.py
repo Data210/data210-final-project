@@ -65,11 +65,12 @@ def getDataSince(dt: datetime):
     return getData(applicants_file_keys)
 
 
-def getAllData() -> pd.DataFrame:
-
+def getAllData(folder_path ="") -> pd.DataFrame:
+    if len(folder_path) > 0:
+            folder_path = folder_path + '/'
     applicants_file_keys = []
     # Find all files with .txt extension in bucket
-    for item in client.getAllObjects(bucket_name).filter(Prefix='Talent'):
+    for item in client.getAllObjects(bucket_name).filter(Prefix=folder_path + 'Talent'):
         if item.key.endswith('.csv'):
             applicants_file_keys.append(item.key)
     # return getData(applicants_file_keys)
