@@ -67,7 +67,7 @@ with engine.connect() as conn:
         JOIN Personal_Details as pd
         ON a.person_id = pd.person_id
         WHERE a.invited_date IS NOT NULL
-        AND a.applicant_id NOT IN (SELECT t.applicant_id FROM Talent.dbo.Talent as t WHERE t.applicant_id IS NOT NULL)
+        AND a.applicant_id NOT IN (SELECT t.applicant_id FROM Talent as t WHERE t.applicant_id IS NOT NULL)
         """), conn)
     
 df_talent.date = pd.to_datetime(df_talent.date)
