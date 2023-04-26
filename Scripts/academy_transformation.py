@@ -46,6 +46,13 @@ def getData(keys: list) -> pd.DataFrame:
     """
     Returns multiple DataFrames of normalized data
     """
+    if len(keys) == 0:
+        return pd.DataFrame(columns=['spartan_id','course_id','trainer_id','name']),\
+        pd.DataFrame(columns=['course_num','start_date','course_id','stream_id']),\
+        pd.DataFrame(columns=['stream_id','stream']),\
+        pd.DataFrame(columns=['trainer_id','trainer']),\
+        pd.DataFrame(columns=['spartan_id','week','analytic','determined','imaginative','independent','professional','studious'])
+
     # Create empty df and loop through all files, parsing and concatenating to main df
     df = pd.DataFrame()
 

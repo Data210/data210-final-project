@@ -43,6 +43,9 @@ def getData(keys: list) -> pd.DataFrame:
     """
     Returns a DataFrame with all the records in files from the list of keys provided
     """
+    if len(keys) == 0:
+        return pd.DataFrame()
+
     # Create empty df and loop through all files, parsing and concatenating to main df
     # Set column names
     df = pd.DataFrame()
@@ -85,10 +88,21 @@ def getAllDataAsCSV(filename='applicants_clean.csv'):
         getAllData().to_csv(file)
 
 
-def process_locations(engine) -> pd.DataFrame:
+def process_locations(engine,folder_path="") -> pd.DataFrame:
     # print("Running recruit")
     # main_df, recruiter_df = recruit()
-    main_df = getAllData()
+    main_df = getAllData(folder_path=folder_path)
+    if len(main_df) == 0:
+        return pd.DataFrame(columns=['applicant_id','invited_date','person_id','recruiter_id']),\
+        pd.DataFrame(columns=['person_id','name','gender','dob','email','phone_number','address_id','degree_id','uni_id']),\
+        pd.DataFrame(columns=['uni','uni_id']),\
+        pd.DataFrame(columns=['degree','degree_id']),\
+        pd.DataFrame(columns=['address','postcode_id','city_id','address_id']),\
+        pd.DataFrame(columns=['postcode','postcode_id']),\
+        pd.DataFrame(columns=['city','city_id']),\
+        pd.DataFrame(columns=['recruiter_name','recruiter_id']),\
+    
+
     main_df.name = main_df.name.map(lambda x: x.title())
 
     with engine.connect() as conn:

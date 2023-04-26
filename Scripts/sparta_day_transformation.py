@@ -50,6 +50,10 @@ def getData(keys: list) -> pd.DataFrame:
     """
     Returns a DataFrame with all the records in files from the list of keys provided
     """
+    if len(keys) == 0:
+        return pd.DataFrame(columns=['name','psychometric_result','presentation_result','sparta_day_date','sparta_day_id','sparta_day_result_id']),\
+        pd.DataFrame(columns=['sparta_dat_date','academy_id','sparta_day_id']),\
+        pd.DataFrame(columns=['academy_id','academy'])
     # Create empty df and loop through all files, parsing and concatenating to main df
     # Set column names
     sparta_day_result_df = pd.DataFrame()
