@@ -6,21 +6,26 @@ import string
 import io
 from datetime import datetime, timezone
 from dateutil.parser import parse
-from create_database import create_database
+from create_database import create_database_local
 from sqlalchemy import text, Table, create_engine
 import utilities
 import sqlalchemy as db
 import sys
+import os
 
 print(sys.argv)
 
-try:
-    filepath = sys.argv[1]
-except:
+filepath=os.getenv('filename')
+if filepath is None:
     filepath = ''
 
+# try:
+#     filepath = sys.argv[1]
+# except:
+#     filepath = ''
+
 # %%
-engine = create_database()
+engine = create_database_local()
 
 # %%
 import talent_transformation as Talent

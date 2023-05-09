@@ -9,3 +9,5 @@
 /.python-version
 /.vs
 /Scripts/config_file.ini
+/Scripts/.aws
+/Scripts/env.list

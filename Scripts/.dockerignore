@@ -1,0 +1,10 @@
+__pycache__
+*.ipynb
+.git/
+.gitignore
+Viz/
+*.md
+venv/
+env.list
+*.ini
+.env
