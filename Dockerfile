@@ -1,8 +1,10 @@
 FROM python:3.11.3-bullseye
-WORKDIR /Scripts
-COPY . .
 
-RUN mv .aws ~
+COPY /Scripts/ .
+COPY /.aws .aws
+COPY requirements.txt .
+
+RUN mv /.aws ~
 
 RUN apt-get update
 RUN apt-get install g++ unixodbc-dev -y
