@@ -9,3 +9,6 @@
 /.python-version
 /.vs
 /Scripts/config_file.ini
+__pycache__
+env.list
+.aws

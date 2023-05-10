@@ -52,7 +52,10 @@ df_stream_from_talent = checkNewRecords(df_stream_from_talent, pd.concat([df_str
 df_stream = pd.concat([df_stream,df_stream_from_talent])
 
 # %%
+df_sparta_day_result.sparta_day_date = pd.to_datetime(df_sparta_day_result.sparta_day_date)
 df_applicant_with_names = pd.merge(df_applicant, df_personal_details[['person_id','name']])
+
+df_applicant_with_names.invited_date = pd.to_datetime(df_applicant_with_names.invited_date)
 df_applicant_insert = pd.merge(df_applicant_with_names,df_sparta_day_result[['sparta_day_result_id','name','sparta_day_date']],
                                left_on=['name','invited_date'],
                                right_on=['name','sparta_day_date'],
@@ -116,6 +119,8 @@ df_spartan_insert = pd.merge_asof(
     left_by=['name','stream_id'],
     right_by=['name','stream_id'],
     direction='backward').drop(['name', 'start_date', 'date','stream_id'], axis=1)
+
+df_behaviour = df_behaviour[df_behaviour.spartan_id.isin(df_spartan_insert.spartan_id.to_list())]
 
 # %%
 print('\rDone!')
